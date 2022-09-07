@@ -33,10 +33,16 @@ class MyProject : public BaseProject {
 	// Models, textures and Descriptors (values assigned to the uniforms)
 	Model BoatModel;
 	Texture BoatTexture;
+
 	Model Rock1Model;
 	Texture Rock1Texture;
+
+	Model RiverModel;
+	Texture RiverTexture;
+
 	DescriptorSet BoatDS;
 	DescriptorSet Rock1DS;
+	DescriptorSet RiverDS;
 	std::vector<DescriptorSet> Rock1DSVector;
 	DescriptorSet DSglobal;
 	
@@ -49,9 +55,9 @@ class MyProject : public BaseProject {
 		initialBackgroundColor = {0.0f, 0.0f, 0.0f, 1.0f};
 		
 		// Descriptor pool sizes
-		uniformBlocksInPool = 3 + maxNumberRock;;
-		texturesInPool = 2 + maxNumberRock;
-		setsInPool = 3 + maxNumberRock;
+		uniformBlocksInPool = 4 + maxNumberRock;;
+		texturesInPool = 3 + maxNumberRock;
+		setsInPool = 4 + maxNumberRock;
 	}
 	
 	// Here you load and setup all your Vulkan objects
@@ -104,6 +110,13 @@ class MyProject : public BaseProject {
 				});
 		}
 
+		RiverModel.init(this, "models/Square.obj");
+		RiverTexture.init(this, "textures/Water.png");
+		RiverDS.init(this, &DSLobj, {
+						{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+						{1, TEXTURE, 0, &RiverTexture}
+			});
+
 		/*Descriptor set global*/
 		DSglobal.init(this, &DSLglobal, {
 						{0, UNIFORM, sizeof(GlobalUniformBufferObject), nullptr}
@@ -124,6 +137,9 @@ class MyProject : public BaseProject {
 
 		Rock1Texture.cleanup();
 		Rock1Model.cleanup();
+
+		RiverTexture.cleanup();
+		RiverModel.cleanup();
 
 		DSglobal.cleanup();
 
@@ -173,6 +189,19 @@ class MyProject : public BaseProject {
 						0, nullptr);
 
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(Rock1Model.indices.size()), 1, 0, 0, 0);
+
+		/* Creating the buffer and the Command for the RIVER*/
+
+		VkBuffer vertexBuffers4[] = { RiverModel.vertexBuffer };
+		VkDeviceSize offsets4[] = { 0 };
+		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers4, offsets4);
+		vkCmdBindIndexBuffer(commandBuffer, RiverModel.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+		vkCmdBindDescriptorSets(commandBuffer,
+			VK_PIPELINE_BIND_POINT_GRAPHICS,
+			P1.pipelineLayout, 1, 1, &RiverDS.descriptorSets[currentImage],
+			0, nullptr);
+
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(RiverModel.indices.size()), 1, 0, 0, 0);
 
 		/*
 		* Creating the buffer and the command for the rocks in the array
@@ -240,11 +269,11 @@ class MyProject : public BaseProject {
 		}
 		if (glfwGetKey(this->window, GLFW_KEY_D)) {
 			angle = static_cast<float>(glm::radians(-15.f));
-			pos += glm::vec3(0.f, 0.f, 1.f) * delta;
+			pos += glm::vec3(0.f, 0.f, 5.f) * delta;
 		}
 		if (glfwGetKey(this->window, GLFW_KEY_A)) {
 			angle = static_cast<float>(glm::radians(15.f));
-			pos -= glm::vec3(0.f, 0.f, 1.f) * delta;
+			pos -= glm::vec3(0.f, 0.f, 5.f) * delta;
 		}
 		
 		
@@ -274,6 +303,14 @@ class MyProject : public BaseProject {
 			memcpy(data, &ubo, sizeof(ubo));
 			vkUnmapMemory(device, ds.uniformBuffersMemory[0][currentImage]);
 		}
+
+		/*UBO for the River*/
+		ubo.model =		glm::mat4(1.f) *
+						glm::scale(glm::mat4(1.f), glm::vec3(50.f, 0.f, 50.f)) *
+						glm::rotate(glm::mat4(1.0f), static_cast<float>(glm::radians(90.f)), glm::vec3(0.f, 0.f, 1.f));
+		vkMapMemory(device, RiverDS.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
+		memcpy(data, &ubo, sizeof(ubo));
+		vkUnmapMemory(device, RiverDS.uniformBuffersMemory[0][currentImage]);
 	}	
 };
 
