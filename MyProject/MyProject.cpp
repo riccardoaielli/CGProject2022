@@ -16,6 +16,7 @@ struct UniformBufferObject {
 };
 
 const int maxNumberRock = 5;
+const int maxNumberGrass = 5;
 
 
 // MAIN ! 
@@ -37,12 +38,17 @@ class MyProject : public BaseProject {
 	Model Rock1Model;
 	Texture Rock1Texture;
 
-	Model RiverModel;
-	Texture RiverTexture;
+	Model GrassModel;
+	Texture GrassTexture;
+
+	Model WaterModel;
+	Texture WaterTexture;
 
 	DescriptorSet BoatDS;
 	DescriptorSet Rock1DS;
-	DescriptorSet RiverDS;
+	DescriptorSet WaterDS;
+
+	std::vector<DescriptorSet> GrassDSVector;
 	std::vector<DescriptorSet> Rock1DSVector;
 	DescriptorSet DSglobal;
 	
@@ -55,9 +61,9 @@ class MyProject : public BaseProject {
 		initialBackgroundColor = {0.0f, 0.0f, 0.0f, 1.0f};
 		
 		// Descriptor pool sizes
-		uniformBlocksInPool = 4 + maxNumberRock;;
-		texturesInPool = 3 + maxNumberRock;
-		setsInPool = 4 + maxNumberRock;
+		uniformBlocksInPool = 4 + maxNumberRock + maxNumberGrass + 1;
+		texturesInPool = 3 + maxNumberRock + maxNumberGrass + 1;
+		setsInPool = 4 + maxNumberRock + maxNumberGrass + 1;
 	}
 	
 	// Here you load and setup all your Vulkan objects
@@ -102,6 +108,13 @@ class MyProject : public BaseProject {
 						{1, TEXTURE, 0, &Rock1Texture}
 		});
 
+		WaterModel.init(this, "models/Water.obj");
+		WaterTexture.init(this, "textures/Water.png");
+		WaterDS.init(this, &DSLobj, {
+						{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+						{1, TEXTURE, 0, &WaterTexture}
+			});
+
 		Rock1DSVector.resize(maxNumberRock);
 		for (auto &ds : Rock1DSVector) {
 			ds.init(this, &DSLobj, {
@@ -110,12 +123,15 @@ class MyProject : public BaseProject {
 				});
 		}
 
-		RiverModel.init(this, "models/Square.obj");
-		RiverTexture.init(this, "textures/Water.png");
-		RiverDS.init(this, &DSLobj, {
+		GrassModel.init(this, "models/Grass.obj");
+		GrassTexture.init(this, "textures/Grass.png");
+		GrassDSVector.resize(maxNumberGrass);
+		for (auto& ds : GrassDSVector) {
+			ds.init(this, &DSLobj, {
 						{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-						{1, TEXTURE, 0, &RiverTexture}
-			});
+						{1, TEXTURE, 0, &GrassTexture}
+				});
+		}
 
 		/*Descriptor set global*/
 		DSglobal.init(this, &DSLglobal, {
@@ -135,11 +151,15 @@ class MyProject : public BaseProject {
 			ds.cleanup();
 		}
 
+		for (auto& ds : GrassDSVector) {
+			ds.cleanup();
+		}
+
 		Rock1Texture.cleanup();
 		Rock1Model.cleanup();
 
-		RiverTexture.cleanup();
-		RiverModel.cleanup();
+		GrassTexture.cleanup();
+		GrassModel.cleanup();
 
 		DSglobal.cleanup();
 
@@ -176,6 +196,17 @@ class MyProject : public BaseProject {
 						
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(BoatModel.indices.size()), 1, 0, 0, 0);
 
+		VkBuffer vertexBuffers1[] = { WaterModel.vertexBuffer };
+		VkDeviceSize offsets1[] = { 0 };
+		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers1, offsets1);
+		vkCmdBindIndexBuffer(commandBuffer, WaterModel.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+		vkCmdBindDescriptorSets(commandBuffer,
+			VK_PIPELINE_BIND_POINT_GRAPHICS,
+			P1.pipelineLayout, 1, 1, &WaterDS.descriptorSets[currentImage],
+			0, nullptr);
+
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(Rock1Model.indices.size()), 1, 0, 0, 0);
+
 		/*
 		* Creating the buffer and the command for the rock
 		*/
@@ -192,16 +223,21 @@ class MyProject : public BaseProject {
 
 		/* Creating the buffer and the Command for the RIVER*/
 
-		VkBuffer vertexBuffers4[] = { RiverModel.vertexBuffer };
+		VkBuffer vertexBuffers4[] = { GrassModel.vertexBuffer };
 		VkDeviceSize offsets4[] = { 0 };
 		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers4, offsets4);
-		vkCmdBindIndexBuffer(commandBuffer, RiverModel.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
-		vkCmdBindDescriptorSets(commandBuffer,
-			VK_PIPELINE_BIND_POINT_GRAPHICS,
-			P1.pipelineLayout, 1, 1, &RiverDS.descriptorSets[currentImage],
-			0, nullptr);
+		vkCmdBindIndexBuffer(commandBuffer, GrassModel.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
-		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(RiverModel.indices.size()), 1, 0, 0, 0);
+		for (auto& ds : GrassDSVector) {
+
+			vkCmdBindDescriptorSets(commandBuffer,
+				VK_PIPELINE_BIND_POINT_GRAPHICS,
+				P1.pipelineLayout, 1, 1, &ds.descriptorSets[currentImage],
+				0, nullptr);
+
+			vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(GrassModel.indices.size()), 1, 0, 0, 0);
+
+		}
 
 		/*
 		* Creating the buffer and the command for the rocks in the array
@@ -304,13 +340,24 @@ class MyProject : public BaseProject {
 			vkUnmapMemory(device, ds.uniformBuffersMemory[0][currentImage]);
 		}
 
+		ubo.model = glm::mat4(1.f) * glm::scale(glm::mat4(1.f), glm::vec3(0.05f, 0.05f, 0.05f));
+
 		/*UBO for the River*/
-		ubo.model =		glm::mat4(1.f) *
-						glm::scale(glm::mat4(1.f), glm::vec3(50.f, 0.f, 50.f)) *
-						glm::rotate(glm::mat4(1.0f), static_cast<float>(glm::radians(90.f)), glm::vec3(0.f, 0.f, 1.f));
-		vkMapMemory(device, RiverDS.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
+		i = 10.f;
+		for (auto& ds : GrassDSVector) {
+
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(i, 0.f, 0.f)) * ubo.model;
+			vkMapMemory(device, ds.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
+			memcpy(data, &ubo, sizeof(ubo));
+			vkUnmapMemory(device, ds.uniformBuffersMemory[0][currentImage]);
+
+		}
+
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(10.f, 0.f, 0.f)) * glm::scale(glm::mat4(1.f), glm::vec3(0.05f, 0.05f, 0.05f));
+		vkMapMemory(device, WaterDS.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
 		memcpy(data, &ubo, sizeof(ubo));
-		vkUnmapMemory(device, RiverDS.uniformBuffersMemory[0][currentImage]);
+		vkUnmapMemory(device, WaterDS.uniformBuffersMemory[0][currentImage]);
+		
 	}	
 };
 
