@@ -15,8 +15,29 @@ struct UniformBufferObject {
 	alignas(16) glm::mat4 model;
 };
 
-const int maxNumberRock = 5;
-const int maxNumberGrass = 5;
+struct RockObject {
+	DescriptorSet ds;
+	glm::vec3 currentPos;
+};
+
+struct BoatObject {
+	Model model;
+	Texture texture;
+	DescriptorSet ds;
+	float currentPosX = 0.f;
+};
+
+struct LandscapeObject {
+	DescriptorSet grassDs;
+	DescriptorSet waterDs;
+	float currentPosX = 0.f;
+};
+
+const int maxNumberRock = 10;
+const int maxNumberLandscape = 5;
+const float distanceBetweenRocksX = 10.f;
+const float distanceBetweenRocksZ = 4.f;
+
 
 
 // MAIN ! 
@@ -32,11 +53,7 @@ class MyProject : public BaseProject {
 	Pipeline P1;
 
 	// Models, textures and Descriptors (values assigned to the uniforms)
-	Model BoatModel;
-	Texture BoatTexture;
-
-	Model Rock1Model;
-	Texture Rock1Texture;
+	BoatObject boatObject;
 
 	Model GrassModel;
 	Texture GrassTexture;
@@ -44,12 +61,12 @@ class MyProject : public BaseProject {
 	Model WaterModel;
 	Texture WaterTexture;
 
-	DescriptorSet BoatDS;
-	DescriptorSet Rock1DS;
-	DescriptorSet WaterDS;
+	Model Rock1Model;
+	Texture Rock1Texture;
+	std::vector<RockObject> rockObjects;
 
-	std::vector<DescriptorSet> GrassDSVector;
-	std::vector<DescriptorSet> Rock1DSVector;
+	std::vector<LandscapeObject> landscapeObjects;
+
 	DescriptorSet DSglobal;
 	
 	// Here you set the main application parameters
@@ -58,12 +75,14 @@ class MyProject : public BaseProject {
 		windowWidth = 2560;
 		windowHeight = 1440;
 		windowTitle = "My Project";
-		initialBackgroundColor = {0.0f, 0.0f, 0.0f, 1.0f};
+		initialBackgroundColor = {51.f, 153.f, 255.f, 1.f};
 		
 		// Descriptor pool sizes
-		uniformBlocksInPool = 4 + maxNumberRock + maxNumberGrass + 1;
-		texturesInPool = 3 + maxNumberRock + maxNumberGrass + 1;
-		setsInPool = 4 + maxNumberRock + maxNumberGrass + 1;
+		uniformBlocksInPool = 3 + maxNumberRock + maxNumberLandscape * 2;
+		texturesInPool = 2 + maxNumberRock + maxNumberLandscape * 2;
+		setsInPool = 3 + maxNumberRock + maxNumberLandscape * 2;
+
+		std::srand(std::time(nullptr));
 	}
 	
 	// Here you load and setup all your Vulkan objects
@@ -88,9 +107,9 @@ class MyProject : public BaseProject {
 		P1.init(this, "shaders/vert.spv", "shaders/frag.spv", {&DSLglobal, &DSLobj});
 
 		// Models, textures and Descriptors (values assigned to the uniforms)
-		BoatModel.init(this, "models/Boat.obj");
-		BoatTexture.init(this, "textures/Boat.bmp");
-		BoatDS.init(this, &DSLobj, {
+		boatObject.model.init(this, "models/Boat.obj");
+		boatObject.texture.init(this, "textures/Boat.bmp");
+		boatObject.ds.init(this, &DSLobj, {
 		// the second parameter, is a pointer to the Uniform Set Layout of this set
 		// the last parameter is an array, with one element per binding of the set.
 		// first  elmenet : the binding number
@@ -98,40 +117,52 @@ class MyProject : public BaseProject {
 		// third  element : only for UNIFORMs, the size of the corresponding C++ object
 		// fourth element : only for TEXTUREs, the pointer to the corresponding texture object
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-					{1, TEXTURE, 0, &BoatTexture}
+					{1, TEXTURE, 0, &boatObject.texture}
 		});
 
-		Rock1Model.init(this, "models/Rock1.obj");
-		Rock1Texture.init(this, "textures/Rock1.png");
-		Rock1DS.init(this, &DSLobj, {
-						{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-						{1, TEXTURE, 0, &Rock1Texture}
-		});
-
+		
+		/* INITIALIZING MODEL AND TEXTURE OF GRASS AND WATER + INITIALIZING THE DESCRIPTIVE SET AND POSITION */
 		WaterModel.init(this, "models/Water.obj");
 		WaterTexture.init(this, "textures/Water.png");
-		WaterDS.init(this, &DSLobj, {
-						{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-						{1, TEXTURE, 0, &WaterTexture}
-			});
-
-		Rock1DSVector.resize(maxNumberRock);
-		for (auto &ds : Rock1DSVector) {
-			ds.init(this, &DSLobj, {
-						{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
-						{1, TEXTURE, 0, &Rock1Texture}
-				});
-		}
-
 		GrassModel.init(this, "models/Grass.obj");
 		GrassTexture.init(this, "textures/Grass.png");
-		GrassDSVector.resize(maxNumberGrass);
-		for (auto& ds : GrassDSVector) {
-			ds.init(this, &DSLobj, {
+		landscapeObjects.resize(maxNumberLandscape);
+		float i = 10.f;
+		for (auto& obj : landscapeObjects) {
+			obj.waterDs.init(this, &DSLobj, {
+						{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+						{1, TEXTURE, 0, &WaterTexture}
+				});
+			obj.grassDs.init(this, &DSLobj, {
 						{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 						{1, TEXTURE, 0, &GrassTexture}
 				});
+			obj.currentPosX += i;
+			i += 10.f;
 		}
+
+
+		/* INITIALIZING MODEL AND TEXTURE OF ROCK1 + INITIALIZING THE DESCRIPTIVE SET */
+		Rock1Model.init(this, "models/Rock1.obj");
+		Rock1Texture.init(this, "textures/Rock1.png");
+		rockObjects.resize(maxNumberRock);
+		i = 15.f;
+		int even = 1;
+		for (auto &obj : rockObjects) {
+			obj.ds.init(this, &DSLobj, {
+						{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+						{1, TEXTURE, 0, &Rock1Texture}
+				});
+
+			/* INITIALIZING THE POSITION OF THE ROCKS */
+			obj.currentPos = glm::vec3(i, 0.f, (std::rand()%5 -2)*distanceBetweenRocksZ);
+			if ((even % 2) == 0) {
+				i += distanceBetweenRocksX;
+			}
+			even++;
+		}
+
+		/*-----------------------------------------------------*/
 
 		/*Descriptor set global*/
 		DSglobal.init(this, &DSLglobal, {
@@ -141,18 +172,17 @@ class MyProject : public BaseProject {
 
 	// Here you destroy all the objects you created!		
 	void localCleanup() {
-		BoatDS.cleanup();
-		BoatTexture.cleanup();
-		BoatModel.cleanup();
+		boatObject.ds.cleanup();
+		boatObject.texture.cleanup();
+		boatObject.model.cleanup();
 
-		Rock1DS.cleanup();
-
-		for (auto &ds : Rock1DSVector) {
-			ds.cleanup();
+		for (auto &obj : rockObjects) {
+			obj.ds.cleanup();
 		}
 
-		for (auto& ds : GrassDSVector) {
-			ds.cleanup();
+		for (auto& obj : landscapeObjects) {
+			obj.grassDs.cleanup();
+			obj.waterDs.cleanup();
 		}
 
 		Rock1Texture.cleanup();
@@ -184,42 +214,18 @@ class MyProject : public BaseProject {
 		/*
 		* Creating the buffer and the command for the boat
 		*/
-		VkBuffer vertexBuffers[] = {BoatModel.vertexBuffer};
+		VkBuffer vertexBuffers[] = { boatObject.model.vertexBuffer};
 		// property .vertexBuffer of models, contains the VkBuffer handle to its vertex buffer
 		VkDeviceSize offsets[] = {0};
 		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
-		vkCmdBindIndexBuffer(commandBuffer, BoatModel.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+		vkCmdBindIndexBuffer(commandBuffer, boatObject.model.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 		vkCmdBindDescriptorSets(commandBuffer,
 						VK_PIPELINE_BIND_POINT_GRAPHICS,
-						P1.pipelineLayout, 1, 1, &BoatDS.descriptorSets[currentImage],
+						P1.pipelineLayout, 1, 1, &boatObject.ds.descriptorSets[currentImage],
 						0, nullptr);
 						
-		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(BoatModel.indices.size()), 1, 0, 0, 0);
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(boatObject.model.indices.size()), 1, 0, 0, 0);
 
-		VkBuffer vertexBuffers1[] = { WaterModel.vertexBuffer };
-		VkDeviceSize offsets1[] = { 0 };
-		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers1, offsets1);
-		vkCmdBindIndexBuffer(commandBuffer, WaterModel.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
-		vkCmdBindDescriptorSets(commandBuffer,
-			VK_PIPELINE_BIND_POINT_GRAPHICS,
-			P1.pipelineLayout, 1, 1, &WaterDS.descriptorSets[currentImage],
-			0, nullptr);
-
-		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(Rock1Model.indices.size()), 1, 0, 0, 0);
-
-		/*
-		* Creating the buffer and the command for the rock
-		*/
-		VkBuffer vertexBuffers2[] = { Rock1Model.vertexBuffer };
-		VkDeviceSize offsets2[] = { 0 };
-		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers2, offsets2);
-		vkCmdBindIndexBuffer(commandBuffer, Rock1Model.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
-		vkCmdBindDescriptorSets(commandBuffer,
-						VK_PIPELINE_BIND_POINT_GRAPHICS,
-						P1.pipelineLayout, 1, 1, &Rock1DS.descriptorSets[currentImage],
-						0, nullptr);
-
-		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(Rock1Model.indices.size()), 1, 0, 0, 0);
 
 		/* Creating the buffer and the Command for the RIVER*/
 
@@ -228,57 +234,69 @@ class MyProject : public BaseProject {
 		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers4, offsets4);
 		vkCmdBindIndexBuffer(commandBuffer, GrassModel.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
-		for (auto& ds : GrassDSVector) {
+		for (auto& obj : landscapeObjects) {
 
 			vkCmdBindDescriptorSets(commandBuffer,
 				VK_PIPELINE_BIND_POINT_GRAPHICS,
-				P1.pipelineLayout, 1, 1, &ds.descriptorSets[currentImage],
+				P1.pipelineLayout, 1, 1, &obj.grassDs.descriptorSets[currentImage],
 				0, nullptr);
 
 			vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(GrassModel.indices.size()), 1, 0, 0, 0);
 
 		}
 
-		/*
-		* Creating the buffer and the command for the rocks in the array
-		*/
-		VkBuffer vertexBuffers3[] = { Rock1Model.vertexBuffer };
-		VkDeviceSize offsets3[] = { 0 };
-		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers3, offsets3);
-		vkCmdBindIndexBuffer(commandBuffer, Rock1Model.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
-		for (auto& ds : Rock1DSVector) {
-			
+		VkBuffer vertexBuffers1[] = { WaterModel.vertexBuffer };
+		VkDeviceSize offsets1[] = { 0 };
+		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers1, offsets1);
+		vkCmdBindIndexBuffer(commandBuffer, WaterModel.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+
+		for (auto& obj : landscapeObjects) {
+
 			vkCmdBindDescriptorSets(commandBuffer,
 				VK_PIPELINE_BIND_POINT_GRAPHICS,
-				P1.pipelineLayout, 1, 1, &ds.descriptorSets[currentImage],
+				P1.pipelineLayout, 1, 1, &obj.waterDs.descriptorSets[currentImage],
+				0, nullptr);
+
+			vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(WaterModel.indices.size()), 1, 0, 0, 0);
+
+		}
+		
+
+
+		/* CREATING THE BUFFER AND THE COMMAND FOR THE ROCKS */
+
+		VkBuffer vertexBuffers2[] = { Rock1Model.vertexBuffer };
+		VkDeviceSize offsets2[] = { 0 };
+		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers2, offsets2);
+		vkCmdBindIndexBuffer(commandBuffer, Rock1Model.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+
+		for (auto& obj : rockObjects) {
+
+			vkCmdBindDescriptorSets(commandBuffer,
+				VK_PIPELINE_BIND_POINT_GRAPHICS,
+				P1.pipelineLayout, 1, 1, &obj.ds.descriptorSets[currentImage],
 				0, nullptr);
 
 			vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(Rock1Model.indices.size()), 1, 0, 0, 0);
 		}
 
+		/*---------------------------------------------------*/
+
+		
+	
 	}
 
 	// Here is where you update the uniforms.
 	// Very likely this will be where you will be writing the logic of your application.
 	void updateUniformBuffer(uint32_t currentImage) {
 		
-		static auto start = std::chrono::high_resolution_clock::now();
-		static float last = 0.f;
-		auto now = std::chrono::high_resolution_clock::now();
-		float time = std::chrono::duration<float, std::chrono::seconds::period>(now - start).count();
-		float delta = time - last;
-		last = time;
-					
-		static glm::mat4 mat = glm::mat4(1.0f);
-		static glm::vec3 pos = glm::vec3(1.0f, 0.f, 0.f);
-		float angle = static_cast<float>(glm::radians(0.f));
 					
 		/*Creating the Global UBO and copy the data to the GPU*/
 		GlobalUniformBufferObject gubo{};
 
-		gubo.view = glm::lookAt(glm::vec3(-8.0f, 5.0f, 0.0f) + pos,
-			pos,
+		gubo.view = glm::lookAt(glm::vec3(-5.0f + boatObject.currentPosX, 10.0f, 0.0f),
+			glm::vec3(boatObject.currentPosX, 0.f, 0.f),
 			glm::vec3(0.0f, 1.0f, 0.0f));
 
 		gubo.proj = glm::perspective(glm::radians(90.0f),
@@ -292,9 +310,113 @@ class MyProject : public BaseProject {
 		memcpy(data, &gubo, sizeof(gubo));
 		vkUnmapMemory(device, DSglobal.uniformBuffersMemory[0][currentImage]);
 
+		UniformBufferObject ubo;
+
 		/*---------------------------------------------------------------------*/
 
-		/*Creating the local/object UBO and copy the data to the GPU*/
+		/*UBO FOR THE BOAT*/
+
+		updateBoat(currentImage);
+
+		/*---------------------------------------------------------------------*/
+
+
+		/* UBO FOR THE ROCKS */
+
+		updateRocks(currentImage);
+
+		/*---------------------------------------------------------------------*/
+
+		/* UBO FOR THE GRASS AND WATER */
+
+		updateLandscapes(currentImage);
+
+		/*---------------------------------------------------------------------*/
+		
+		
+	}	
+
+	void updateLandscapes(uint32_t currentImage) {
+
+		UniformBufferObject ubo{};
+		void* data;
+
+		/*UBO for the River*/
+		for (auto& obj : landscapeObjects) {
+			//std::cout << obj.currentPosX << "    " << boatObject.currentPosX << "\n";
+			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(obj.currentPosX, 0.f, 0.f)) * glm::scale(glm::mat4(1.f), glm::vec3(0.05f, 0.05f, 0.05f));
+			
+			vkMapMemory(device, obj.grassDs.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
+			memcpy(data, &ubo, sizeof(ubo));
+			vkUnmapMemory(device, obj.grassDs.uniformBuffersMemory[0][currentImage]);
+
+			vkMapMemory(device, obj.waterDs.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
+			memcpy(data, &ubo, sizeof(ubo));
+			vkUnmapMemory(device, obj.waterDs.uniformBuffersMemory[0][currentImage]);
+
+		}
+
+		for (auto& obj : landscapeObjects) {
+			if (boatObject.currentPosX > obj.currentPosX) {
+				obj.currentPosX = obj.currentPosX + (maxNumberLandscape * 10.f);
+
+				ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(obj.currentPosX, 0.f, 0.f)) * glm::scale(glm::mat4(1.f), glm::vec3(0.05f, 0.05f, 0.05f));
+
+				vkMapMemory(device, obj.grassDs.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
+				memcpy(data, &ubo, sizeof(ubo));
+				vkUnmapMemory(device, obj.grassDs.uniformBuffersMemory[0][currentImage]);
+
+				vkMapMemory(device, obj.waterDs.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
+				memcpy(data, &ubo, sizeof(ubo));
+				vkUnmapMemory(device, obj.waterDs.uniformBuffersMemory[0][currentImage]);
+			}
+		}
+
+
+
+	}
+
+	void updateRocks(uint32_t currentImage) {
+
+		UniformBufferObject ubo{};
+		void* data;
+		
+
+		for (auto& obj : rockObjects) {
+			//std::cout << obj.currentPosX << "\n";
+			ubo.model = glm::translate(glm::mat4(1.0f), obj.currentPos) * glm::scale(glm::mat4(1.0), glm::vec3(0.2, 0.5, 0.5));
+			vkMapMemory(device, obj.ds.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
+			memcpy(data, &ubo, sizeof(ubo));
+			vkUnmapMemory(device, obj.ds.uniformBuffersMemory[0][currentImage]);
+		}
+
+		for (auto& obj : rockObjects) {
+			if (boatObject.currentPosX > obj.currentPos.x) {
+				obj.currentPos = glm::vec3(obj.currentPos.x + distanceBetweenRocksX * (maxNumberRock/2), 0.f, (std::rand() % 5 - 2) * distanceBetweenRocksZ);
+				ubo.model = glm::translate(glm::mat4(1.f), obj.currentPos) * ubo.model;
+				vkMapMemory(device, obj.ds.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
+				memcpy(data, &ubo, sizeof(ubo));
+				vkUnmapMemory(device, obj.ds.uniformBuffersMemory[0][currentImage]);
+			}
+		}
+
+	}
+
+	void updateBoat(uint32_t currentImage) {
+
+		static auto start = std::chrono::high_resolution_clock::now();
+		static float last = 0.f;
+		auto now = std::chrono::high_resolution_clock::now();
+		float time = std::chrono::duration<float, std::chrono::seconds::period>(now - start).count();
+		float delta = time - last;
+		last = time;
+
+		static glm::mat4 mat = glm::mat4(1.0f);
+		static glm::vec3 pos = glm::vec3(1.0f, 0.f, 0.f);
+		float angle = static_cast<float>(glm::radians(0.f));
+
+		void* data;
+
 		UniformBufferObject ubo{};
 
 		if (glfwGetKey(this->window, GLFW_KEY_W)) {
@@ -311,55 +433,24 @@ class MyProject : public BaseProject {
 			angle = static_cast<float>(glm::radians(15.f));
 			pos -= glm::vec3(0.f, 0.f, 5.f) * delta;
 		}
-		
-		
+
+
 		ubo.model = glm::translate(glm::mat4(1.0f), pos) * glm::scale(glm::mat4(1.0), glm::vec3(0.005, 0.005, 0.005))
 			* glm::rotate(glm::mat4(1.0f), static_cast<float>(glm::radians(180.f)), glm::vec3(0.f, 1.f, 0.f))
 			* glm::rotate(glm::mat4(1.0f), angle, glm::vec3(0.f, 1.f, 0.f));
-		
-			
-		
 
-		/*UBO for the boat*/
-		vkMapMemory(device, BoatDS.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
+		boatObject.currentPosX = pos.x;
+
+		//std::cout << boatObject.currentPosX << "\n";
+
+		vkMapMemory(device, boatObject.ds.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
 		memcpy(data, &ubo, sizeof(ubo));
-		vkUnmapMemory(device, BoatDS.uniformBuffersMemory[0][currentImage]);
+		vkUnmapMemory(device, boatObject.ds.uniformBuffersMemory[0][currentImage]);
 
-		/*UBO for the rock1*/
-		ubo.model = glm::scale(glm::mat4(1.0f), glm::vec3(0.25f, 0.25f, 0.25f));
-		vkMapMemory(device, Rock1DS.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
-		memcpy(data, &ubo, sizeof(ubo));
-		vkUnmapMemory(device, Rock1DS.uniformBuffersMemory[0][currentImage]);
-
-		float i = 5.f;
-		/*UBO for the rock in the array*/
-		for (auto& ds : Rock1DSVector) {
-			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(i, 0.f, 0.f)) * ubo.model;
-			vkMapMemory(device, ds.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
-			memcpy(data, &ubo, sizeof(ubo));
-			vkUnmapMemory(device, ds.uniformBuffersMemory[0][currentImage]);
-		}
-
-		ubo.model = glm::mat4(1.f) * glm::scale(glm::mat4(1.f), glm::vec3(0.05f, 0.05f, 0.05f));
-
-		/*UBO for the River*/
-		i = 10.f;
-		for (auto& ds : GrassDSVector) {
-
-			ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(i, 0.f, 0.f)) * ubo.model;
-			vkMapMemory(device, ds.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
-			memcpy(data, &ubo, sizeof(ubo));
-			vkUnmapMemory(device, ds.uniformBuffersMemory[0][currentImage]);
-
-		}
-
-		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(10.f, 0.f, 0.f)) * glm::scale(glm::mat4(1.f), glm::vec3(0.05f, 0.05f, 0.05f));
-		vkMapMemory(device, WaterDS.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
-		memcpy(data, &ubo, sizeof(ubo));
-		vkUnmapMemory(device, WaterDS.uniformBuffersMemory[0][currentImage]);
-		
-	}	
+	}
 };
+
+
 
 // This is the main: probably you do not need to touch this!
 int main() {
