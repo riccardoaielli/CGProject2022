@@ -24,19 +24,20 @@ struct BoatObject {
 	Model model;
 	Texture texture;
 	DescriptorSet ds;
-	float currentPosX = 0.f;
+	glm::vec3 currentPos = glm::vec3(0.f);
 };
 
 struct LandscapeObject {
 	DescriptorSet grassDs;
 	DescriptorSet waterDs;
-	float currentPosX = 0.f;
+	float currentPosX = -15.f;
 };
 
 const int maxNumberRock = 10;
 const int maxNumberLandscape = 5;
 const float distanceBetweenRocksX = 10.f;
 const float distanceBetweenRocksZ = 4.f;
+bool stillPlaying = true;
 
 
 
@@ -291,32 +292,15 @@ class MyProject : public BaseProject {
 	// Very likely this will be where you will be writing the logic of your application.
 	void updateUniformBuffer(uint32_t currentImage) {
 		
-					
-		/*Creating the Global UBO and copy the data to the GPU*/
-		GlobalUniformBufferObject gubo{};
+		/* UPDATE THE GLOBAL UBO */
 
-		gubo.view = glm::lookAt(glm::vec3(-5.0f + boatObject.currentPosX, 10.0f, 0.0f),
-			glm::vec3(boatObject.currentPosX, 0.f, 0.f),
-			glm::vec3(0.0f, 1.0f, 0.0f));
-
-		gubo.proj = glm::perspective(glm::radians(90.0f),
-			swapChainExtent.width / (float)swapChainExtent.height,
-			0.1f, 100.0f);
-		gubo.proj[1][1] *= -1;
-
-		void* data;
-
-		vkMapMemory(device, DSglobal.uniformBuffersMemory[0][currentImage], 0, sizeof(gubo), 0, &data);
-		memcpy(data, &gubo, sizeof(gubo));
-		vkUnmapMemory(device, DSglobal.uniformBuffersMemory[0][currentImage]);
-
-		UniformBufferObject ubo;
+		updateGlobalUBO(currentImage);
 
 		/*---------------------------------------------------------------------*/
 
 		/*UBO FOR THE BOAT*/
 
-		updateBoat(currentImage);
+			updateBoat(currentImage);
 
 		/*---------------------------------------------------------------------*/
 
@@ -335,6 +319,28 @@ class MyProject : public BaseProject {
 		
 		
 	}	
+
+	void updateGlobalUBO(uint32_t currentImage) {
+
+		/*Creating the Global UBO and copy the data to the GPU*/
+		GlobalUniformBufferObject gubo{};
+
+		gubo.view = glm::lookAt(glm::vec3(-5.0f + boatObject.currentPos.x, 10.0f, 0.0f),
+			glm::vec3(boatObject.currentPos.x, 0.f, 0.f),
+			glm::vec3(0.0f, 1.0f, 0.0f));
+
+		gubo.proj = glm::perspective(glm::radians(90.0f),
+			swapChainExtent.width / (float)swapChainExtent.height,
+			0.1f, 100.0f);
+		gubo.proj[1][1] *= -1;
+
+		void* data;
+
+		vkMapMemory(device, DSglobal.uniformBuffersMemory[0][currentImage], 0, sizeof(gubo), 0, &data);
+		memcpy(data, &gubo, sizeof(gubo));
+		vkUnmapMemory(device, DSglobal.uniformBuffersMemory[0][currentImage]);
+
+	}
 
 	void updateLandscapes(uint32_t currentImage) {
 
@@ -357,7 +363,7 @@ class MyProject : public BaseProject {
 		}
 
 		for (auto& obj : landscapeObjects) {
-			if (boatObject.currentPosX > obj.currentPosX) {
+			if (boatObject.currentPos.x > obj.currentPosX + 15.f) {
 				obj.currentPosX = obj.currentPosX + (maxNumberLandscape * 10.f);
 
 				ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(obj.currentPosX, 0.f, 0.f)) * glm::scale(glm::mat4(1.f), glm::vec3(0.05f, 0.05f, 0.05f));
@@ -381,17 +387,27 @@ class MyProject : public BaseProject {
 		UniformBufferObject ubo{};
 		void* data;
 		
+		/*
+			Size:
+			x = 10 * 0.2 = 2
+			z = 7 * 0.5 = 3.5
+		*/
 
 		for (auto& obj : rockObjects) {
 			//std::cout << obj.currentPosX << "\n";
-			ubo.model = glm::translate(glm::mat4(1.0f), obj.currentPos) * glm::scale(glm::mat4(1.0), glm::vec3(0.2, 0.5, 0.5));
+			ubo.model = glm::translate(glm::mat4(1.0f), obj.currentPos) * glm::scale(glm::mat4(1.0), glm::vec3(0.2, 0.5, 0.5))
+							* glm::rotate(glm::mat4(1.f), glm::radians(180.f), glm::vec3(0.f, 1.f, 0.f));
 			vkMapMemory(device, obj.ds.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
 			memcpy(data, &ubo, sizeof(ubo));
 			vkUnmapMemory(device, obj.ds.uniformBuffersMemory[0][currentImage]);
 		}
 
 		for (auto& obj : rockObjects) {
-			if (boatObject.currentPosX > obj.currentPos.x) {
+			if (boatObject.currentPos.z +1.f < obj.currentPos.z + 2.8f && boatObject.currentPos.z - 1.f > obj.currentPos.z - 2.8f && 
+					(boatObject.currentPos.x + 2.f > obj.currentPos.x - 1.f && boatObject.currentPos.x - 2.4f < obj.currentPos.x + 1.f) ) {
+				stillPlaying = false;
+			}
+			if (boatObject.currentPos.x > obj.currentPos.x + 10.f) {
 				obj.currentPos = glm::vec3(obj.currentPos.x + distanceBetweenRocksX * (maxNumberRock/2), 0.f, (std::rand() % 5 - 2) * distanceBetweenRocksZ);
 				ubo.model = glm::translate(glm::mat4(1.f), obj.currentPos) * ubo.model;
 				vkMapMemory(device, obj.ds.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
@@ -413,33 +429,48 @@ class MyProject : public BaseProject {
 
 		static glm::mat4 mat = glm::mat4(1.0f);
 		static glm::vec3 pos = glm::vec3(1.0f, 0.f, 0.f);
-		float angle = static_cast<float>(glm::radians(0.f));
+		static float angle = glm::radians(0.f);
 
 		void* data;
 
 		UniformBufferObject ubo{};
 
-		if (glfwGetKey(this->window, GLFW_KEY_W)) {
+		/* ALWAYS INCREMENTING THE X POSITION OF 5.f FOR MOVING STRAIGHT */
+		if (glfwGetKey(this->window, GLFW_KEY_P))
+			stillPlaying = true;
+		if (stillPlaying) {
 			pos += glm::vec3(5.0f, 0.0f, 0.0f) * delta;
+
+			/* UPDATING FOR MOVING RIGHT OR LEFT */
+			if (glfwGetKey(this->window, GLFW_KEY_D)) {
+				angle = angle < glm::radians(-10.f) ? glm::radians(-10.f) : angle + glm::radians(-1.f);
+				pos += glm::vec3(0.f, 0.f, 5.f) * delta;
+				if (pos.z > 10.f - 1.f)
+					pos.z = 9.f;
+			}
+			else if (glfwGetKey(this->window, GLFW_KEY_A)) {
+				angle = angle > glm::radians(10.f) ? glm::radians(10.f) : angle + glm::radians(1.f);
+				pos -= glm::vec3(0.f, 0.f, 5.f) * delta;
+				if (pos.z < -10.f + 1.f)
+					pos.z = -9.f;
+			}
+			else {
+				if (angle > glm::radians(0.f))
+					angle -= glm::radians(1.f);
+				else if (angle < glm::radians(0.f))
+					angle += glm::radians(1.f);
+			}
 		}
-		if (glfwGetKey(this->window, GLFW_KEY_S)) {
-			pos -= glm::vec3(5.0f, 0.0f, 0.0f) * delta;
-		}
-		if (glfwGetKey(this->window, GLFW_KEY_D)) {
-			angle = static_cast<float>(glm::radians(-15.f));
-			pos += glm::vec3(0.f, 0.f, 5.f) * delta;
-		}
-		if (glfwGetKey(this->window, GLFW_KEY_A)) {
-			angle = static_cast<float>(glm::radians(15.f));
-			pos -= glm::vec3(0.f, 0.f, 5.f) * delta;
-		}
+
+		
+		
 
 
 		ubo.model = glm::translate(glm::mat4(1.0f), pos) * glm::scale(glm::mat4(1.0), glm::vec3(0.005, 0.005, 0.005))
 			* glm::rotate(glm::mat4(1.0f), static_cast<float>(glm::radians(180.f)), glm::vec3(0.f, 1.f, 0.f))
 			* glm::rotate(glm::mat4(1.0f), angle, glm::vec3(0.f, 1.f, 0.f));
 
-		boatObject.currentPosX = pos.x;
+		boatObject.currentPos = pos;
 
 		//std::cout << boatObject.currentPosX << "\n";
 
