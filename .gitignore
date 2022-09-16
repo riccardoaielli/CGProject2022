@@ -360,3 +360,6 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+compile
+MyProject/MyProject
+.vscode/c_cpp_properties.json
