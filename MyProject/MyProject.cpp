@@ -33,11 +33,21 @@ struct LandscapeObject {
 	float currentPosX = -15.f;
 };
 
-const int maxNumberRock = 10;
-const int maxNumberLandscape = 5;
-const float distanceBetweenRocksX = 10.f;
-const float distanceBetweenRocksZ = 4.f;
+struct DataPersonalization{
+	const int maxNumberRock = 20;
+	const int maxNumberLandscape = 10;
+	int numberRocksLine = 2;
+	float distanceBetweenRocksX = 10.f;
+	float distanceBetweenRocksZ = 4.f;
+	float distanceFinishLine = 400.f;
+	glm::vec3 boatSpeed = glm::vec3(15.f, 0.f, 5.f);
+};
+
+DataPersonalization level;
+
+bool selectLevel = true;
 bool stillPlaying = true;
+bool firstTime = true;
 
 
 
@@ -68,6 +78,11 @@ class MyProject : public BaseProject {
 
 	std::vector<LandscapeObject> landscapeObjects;
 
+	Model finishLineModel;
+	Texture finishLineTexture;
+
+	DescriptorSet finishLineDS;
+
 	DescriptorSet DSglobal;
 	
 	// Here you set the main application parameters
@@ -79,9 +94,9 @@ class MyProject : public BaseProject {
 		initialBackgroundColor = {51.f, 153.f, 255.f, 1.f};
 		
 		// Descriptor pool sizes
-		uniformBlocksInPool = 3 + maxNumberRock + maxNumberLandscape * 2;
-		texturesInPool = 2 + maxNumberRock + maxNumberLandscape * 2;
-		setsInPool = 3 + maxNumberRock + maxNumberLandscape * 2;
+		uniformBlocksInPool = 3 + level.maxNumberRock + level.maxNumberLandscape * 2 +1;
+		texturesInPool = 2 + level.maxNumberRock + level.maxNumberLandscape * 2 +1;
+		setsInPool = 3 + level.maxNumberRock + level.maxNumberLandscape * 2 +1;
 
 		std::srand(std::time(nullptr));
 	}
@@ -121,13 +136,26 @@ class MyProject : public BaseProject {
 					{1, TEXTURE, 0, &boatObject.texture}
 		});
 
+		finishLineModel.init(this, "models/FinishLine1.obj");
+		finishLineTexture.init(this, "textures/FinishLine.png");
+		finishLineDS.init(this, &DSLobj, {
+			// the second parameter, is a pointer to the Uniform Set Layout of this set
+			// the last parameter is an array, with one element per binding of the set.
+			// first  elmenet : the binding number
+			// second element : UNIFORM or TEXTURE (an enum) depending on the type
+			// third  element : only for UNIFORMs, the size of the corresponding C++ object
+			// fourth element : only for TEXTUREs, the pointer to the corresponding texture object
+						{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+						{1, TEXTURE, 0, &finishLineTexture}
+			});
+
 		
 		/* INITIALIZING MODEL AND TEXTURE OF GRASS AND WATER + INITIALIZING THE DESCRIPTIVE SET AND POSITION */
 		WaterModel.init(this, "models/Water.obj");
 		WaterTexture.init(this, "textures/Water.png");
 		GrassModel.init(this, "models/Grass.obj");
 		GrassTexture.init(this, "textures/Grass.png");
-		landscapeObjects.resize(maxNumberLandscape);
+		landscapeObjects.resize(level.maxNumberLandscape);
 		float i = 10.f;
 		for (auto& obj : landscapeObjects) {
 			obj.waterDs.init(this, &DSLobj, {
@@ -146,7 +174,7 @@ class MyProject : public BaseProject {
 		/* INITIALIZING MODEL AND TEXTURE OF ROCK1 + INITIALIZING THE DESCRIPTIVE SET */
 		Rock1Model.init(this, "models/Rock1.obj");
 		Rock1Texture.init(this, "textures/Rock1.png");
-		rockObjects.resize(maxNumberRock);
+		rockObjects.resize(level.maxNumberRock);
 		i = 15.f;
 		int even = 1;
 		for (auto &obj : rockObjects) {
@@ -156,11 +184,12 @@ class MyProject : public BaseProject {
 				});
 
 			/* INITIALIZING THE POSITION OF THE ROCKS */
-			obj.currentPos = glm::vec3(i, 0.f, (std::rand()%5 -2)*distanceBetweenRocksZ);
-			if ((even % 2) == 0) {
-				i += distanceBetweenRocksX;
+			obj.currentPos = glm::vec3(-20.f, 0.f, 0.f);
+			/*obj.currentPos = glm::vec3(i, 0.f, (std::rand()%5 -2)*level.distanceBetweenRocksZ);
+			if ((even % level.numberRocksLine) == 0) {
+				i += level.distanceBetweenRocksX;
 			}
-			even++;
+			even++;*/
 		}
 
 		/*-----------------------------------------------------*/
@@ -185,6 +214,10 @@ class MyProject : public BaseProject {
 			obj.grassDs.cleanup();
 			obj.waterDs.cleanup();
 		}
+
+		finishLineDS.cleanup();
+		finishLineTexture.cleanup();
+		finishLineModel.cleanup();
 
 		Rock1Texture.cleanup();
 		Rock1Model.cleanup();
@@ -226,6 +259,19 @@ class MyProject : public BaseProject {
 						0, nullptr);
 						
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(boatObject.model.indices.size()), 1, 0, 0, 0);
+
+
+		VkBuffer vertexBuffers5[] = { finishLineModel.vertexBuffer };
+		// property .vertexBuffer of models, contains the VkBuffer handle to its vertex buffer
+		VkDeviceSize offsets5[] = { 0 };
+		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers5, offsets5);
+		vkCmdBindIndexBuffer(commandBuffer, finishLineModel.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+		vkCmdBindDescriptorSets(commandBuffer,
+			VK_PIPELINE_BIND_POINT_GRAPHICS,
+			P1.pipelineLayout, 1, 1, &finishLineDS.descriptorSets[currentImage],
+			0, nullptr);
+
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(finishLineModel.indices.size()), 1, 0, 0, 0);
 
 
 		/* Creating the buffer and the Command for the RIVER*/
@@ -292,40 +338,71 @@ class MyProject : public BaseProject {
 	// Very likely this will be where you will be writing the logic of your application.
 	void updateUniformBuffer(uint32_t currentImage) {
 		
-		/* UPDATE THE GLOBAL UBO */
+		if (!selectLevel) {
 
-		updateGlobalUBO(currentImage);
+			/* UPDATE THE GLOBAL UBO */
 
-		/*---------------------------------------------------------------------*/
+			updateGlobalUBO(currentImage);
 
-		/*UBO FOR THE BOAT*/
+			/*---------------------------------------------------------------------*/
+
+			/*UBO FOR THE BOAT*/
 
 			updateBoat(currentImage);
 
-		/*---------------------------------------------------------------------*/
+			/*---------------------------------------------------------------------*/
 
 
-		/* UBO FOR THE ROCKS */
+			/* UBO FOR THE ROCKS */
 
-		updateRocks(currentImage);
+			updateRocks(currentImage);
 
-		/*---------------------------------------------------------------------*/
+			/*---------------------------------------------------------------------*/
 
-		/* UBO FOR THE GRASS AND WATER */
+			/* UBO FOR THE GRASS AND WATER */
 
-		updateLandscapes(currentImage);
+			updateLandscapes(currentImage);
 
-		/*---------------------------------------------------------------------*/
-		
-		
+			/*---------------------------------------------------------------------*/
+
+			/* UBO FOR THE FINISH LINE */
+
+			updateFinishLine(currentImage);
+
+			/*---------------------------------------------------------------------*/
+
+		}
+		else {
+			if (glfwGetKey(window, GLFW_KEY_1)) {
+				level.numberRocksLine = 2;
+				level.distanceBetweenRocksX = 10.f;
+				level.distanceBetweenRocksZ = 4.f;
+				level.distanceFinishLine = 400.f;
+				level.boatSpeed.x = 5.f;
+				level.boatSpeed.z = 5.f;
+				selectLevel = false;
+				firstTime = true;
+			}
+			else if (glfwGetKey(window, GLFW_KEY_2)) {
+				level.numberRocksLine = 2;
+				level.distanceBetweenRocksX = 10.f;
+				level.distanceBetweenRocksZ = 4.f;
+				level.distanceFinishLine = 400.f;
+				level.boatSpeed.x = 10.f;
+				level.boatSpeed.z = 7.f;
+				selectLevel = false;
+				firstTime = true;
+			}
+		}
 	}	
+
 
 	void updateGlobalUBO(uint32_t currentImage) {
 
 		/*Creating the Global UBO and copy the data to the GPU*/
 		GlobalUniformBufferObject gubo{};
 
-		gubo.view = glm::lookAt(glm::vec3(-5.0f + boatObject.currentPos.x, 10.0f, 0.0f),
+		gubo.view = glm::lookAt(glm::vec3(-8.0f + boatObject.currentPos.x, 10.0f, 0.f),
 			glm::vec3(boatObject.currentPos.x, 0.f, 0.f),
 			glm::vec3(0.0f, 1.0f, 0.0f));
 
@@ -364,7 +441,7 @@ class MyProject : public BaseProject {
 
 		for (auto& obj : landscapeObjects) {
 			if (boatObject.currentPos.x > obj.currentPosX + 15.f) {
-				obj.currentPosX = obj.currentPosX + (maxNumberLandscape * 10.f);
+				obj.currentPosX = obj.currentPosX + (level.maxNumberLandscape * 10.f);
 
 				ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(obj.currentPosX, 0.f, 0.f)) * glm::scale(glm::mat4(1.f), glm::vec3(0.05f, 0.05f, 0.05f));
 
@@ -386,6 +463,7 @@ class MyProject : public BaseProject {
 
 		UniformBufferObject ubo{};
 		void* data;
+		static int pos = 1;
 		
 		/*
 			Size:
@@ -401,6 +479,22 @@ class MyProject : public BaseProject {
 			memcpy(data, &ubo, sizeof(ubo));
 			vkUnmapMemory(device, obj.ds.uniformBuffersMemory[0][currentImage]);
 		}
+		
+
+		if (firstTime) {
+			int even = 0;
+			float i = level.distanceBetweenRocksX*2;
+			for (auto& obj : rockObjects) {
+
+				obj.currentPos = glm::vec3(i, 0.f, (std::rand() % 5 - 2) * level.distanceBetweenRocksZ);
+				if ((even % (level.numberRocksLine)) == 0) {
+					i += level.distanceBetweenRocksX;
+				}
+				even++;
+			}
+			firstTime = false;
+		}
+		
 
 		for (auto& obj : rockObjects) {
 			if (boatObject.currentPos.z +1.f < obj.currentPos.z + 2.8f && boatObject.currentPos.z - 1.f > obj.currentPos.z - 2.8f && 
@@ -408,7 +502,7 @@ class MyProject : public BaseProject {
 				stillPlaying = false;
 			}
 			if (boatObject.currentPos.x > obj.currentPos.x + 10.f) {
-				obj.currentPos = glm::vec3(obj.currentPos.x + distanceBetweenRocksX * (maxNumberRock/2), 0.f, (std::rand() % 5 - 2) * distanceBetweenRocksZ);
+				obj.currentPos = glm::vec3(obj.currentPos.x + level.distanceBetweenRocksX * (level.maxNumberRock/level.numberRocksLine), 0.f, (std::rand() % 5 - 2) * level.distanceBetweenRocksZ);
 				ubo.model = glm::translate(glm::mat4(1.f), obj.currentPos) * ubo.model;
 				vkMapMemory(device, obj.ds.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
 				memcpy(data, &ubo, sizeof(ubo));
@@ -438,19 +532,20 @@ class MyProject : public BaseProject {
 		/* ALWAYS INCREMENTING THE X POSITION OF 5.f FOR MOVING STRAIGHT */
 		if (glfwGetKey(this->window, GLFW_KEY_P))
 			stillPlaying = true;
+		
 		if (stillPlaying) {
-			pos += glm::vec3(5.0f, 0.0f, 0.0f) * delta;
+			pos += glm::vec3(level.boatSpeed.x, 0.f, 0.f) * delta;
 
 			/* UPDATING FOR MOVING RIGHT OR LEFT */
-			if (glfwGetKey(this->window, GLFW_KEY_D)) {
+			if (glfwGetKey(this->window, GLFW_KEY_D) || glfwGetKey(this->window, GLFW_KEY_RIGHT)) {
 				angle = angle < glm::radians(-10.f) ? glm::radians(-10.f) : angle + glm::radians(-1.f);
-				pos += glm::vec3(0.f, 0.f, 5.f) * delta;
+				pos += glm::vec3(0.f, 0.f, level.boatSpeed.z) * delta;
 				if (pos.z > 10.f - 1.f)
 					pos.z = 9.f;
 			}
-			else if (glfwGetKey(this->window, GLFW_KEY_A)) {
+			else if (glfwGetKey(this->window, GLFW_KEY_A) || glfwGetKey(this->window, GLFW_KEY_LEFT)) {
 				angle = angle > glm::radians(10.f) ? glm::radians(10.f) : angle + glm::radians(1.f);
-				pos -= glm::vec3(0.f, 0.f, 5.f) * delta;
+				pos -= glm::vec3(0.f, 0.f, level.boatSpeed.z) * delta;
 				if (pos.z < -10.f + 1.f)
 					pos.z = -9.f;
 			}
@@ -472,12 +567,24 @@ class MyProject : public BaseProject {
 
 		boatObject.currentPos = pos;
 
-		//std::cout << boatObject.currentPosX << "\n";
+		std::cout << boatObject.currentPos.x<<"  "<< boatObject.currentPos.z << "\n";
 
 		vkMapMemory(device, boatObject.ds.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
 		memcpy(data, &ubo, sizeof(ubo));
 		vkUnmapMemory(device, boatObject.ds.uniformBuffersMemory[0][currentImage]);
 
+	}
+
+	void updateFinishLine(uint32_t currentImage) {
+		UniformBufferObject ubo{};
+		void* data;
+
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(level.distanceFinishLine, 2.f, -2.f)) * glm::scale(glm::mat4(1.f), glm::vec3(0.05f, 0.03f, 0.08f))
+			* glm::rotate(glm::mat4(1.f), glm::radians(90.f), glm::vec3(0.f, 1.f, 0.f));
+
+		vkMapMemory(device, finishLineDS.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
+		memcpy(data, &ubo, sizeof(ubo));
+		vkUnmapMemory(device, finishLineDS.uniformBuffersMemory[0][currentImage]);
 	}
 };
 
