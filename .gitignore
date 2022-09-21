@@ -363,3 +363,4 @@ FodyWeavers.xsd
 compile
 MyProject/MyProject
 .vscode/c_cpp_properties.json
+.vscode/settings.json
