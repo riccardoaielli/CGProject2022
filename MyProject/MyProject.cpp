@@ -456,9 +456,9 @@ class MyProject : public BaseProject {
 		else {
 			updateWelcomePage(currentImage);
 			if (glfwGetKey(window, GLFW_KEY_1)) {
-				level.numberRocksLine = 2;
-				level.distanceBetweenRocksX = 10.f;
-				level.distanceFinishLine = 400.f;
+				level.numberRocksLine = 1;
+				level.distanceBetweenRocksX = 15.f;
+				level.distanceFinishLine = 100.f;
 				level.boatSpeed.x = 5.f;
 				level.boatSpeed.z = 5.f;
 				level.posCameraY = 10.f;
@@ -466,11 +466,88 @@ class MyProject : public BaseProject {
 				firstTime = true;
 			}
 			else if (glfwGetKey(window, GLFW_KEY_2)) {
-				level.numberRocksLine = 4;
+				level.numberRocksLine = 2;
 				level.distanceBetweenRocksX = 15.f;
-				level.distanceFinishLine = 400.f;
+				level.distanceFinishLine = 240.f;
+				level.boatSpeed.x = 8.f;
+				level.boatSpeed.z = 8.f;
+				level.posCameraY = 10.f;
+				selectLevel = false;
+				firstTime = true;
+			}
+
+			else if (glfwGetKey(window, GLFW_KEY_3)) {
+				level.numberRocksLine = 3;
+				level.distanceBetweenRocksX = 15.f;
+				level.distanceFinishLine = 600.f;
 				level.boatSpeed.x = 10.f;
 				level.boatSpeed.z = 10.f;
+				level.posCameraY = 10.f;
+				selectLevel = false;
+				firstTime = true;
+			}
+
+			else if (glfwGetKey(window, GLFW_KEY_4)) {
+				level.numberRocksLine = 3;
+				level.distanceBetweenRocksX = 15.f;
+				level.distanceFinishLine = 660.f;
+				level.boatSpeed.x = 11.f;
+				level.boatSpeed.z = 10.f;
+				level.posCameraY = 10.f;
+				selectLevel = false;
+				firstTime = true;
+			}
+
+			else if (glfwGetKey(window, GLFW_KEY_5)) {
+				level.numberRocksLine = 4;
+				level.distanceBetweenRocksX = 17.f;
+				level.distanceFinishLine = 600.f;
+				level.boatSpeed.x = 10.f;
+				level.boatSpeed.z = 11.f;
+				level.posCameraY = 10.f;
+				selectLevel = false;
+				firstTime = true;
+			}
+
+			else if (glfwGetKey(window, GLFW_KEY_6)) {
+				level.numberRocksLine = 4;
+				level.distanceBetweenRocksX = 18.f;
+				level.distanceFinishLine = 660.f;
+				level.boatSpeed.x = 11.f;
+				level.boatSpeed.z = 12.f;
+				level.posCameraY = 10.f;
+				selectLevel = false;
+				firstTime = true;
+			}
+
+			else if (glfwGetKey(window, GLFW_KEY_7)) {
+				level.numberRocksLine = 4;
+				level.distanceBetweenRocksX = 18.f;
+				level.distanceFinishLine = 720.f;
+				level.boatSpeed.x = 12.f;
+				level.boatSpeed.z = 13.f;
+				level.posCameraY = 10.f;
+				selectLevel = false;
+				firstTime = true;
+			}
+
+			else if (glfwGetKey(window, GLFW_KEY_8)) {
+				level.numberRocksLine = 4;
+				level.distanceBetweenRocksX = 18.f;
+				level.distanceFinishLine = 780.f;
+				level.boatSpeed.x = 13.f;
+				level.boatSpeed.z = 15.f;
+				level.posCameraY = 10.f;
+				selectLevel = false;
+				firstTime = true;
+			}
+
+			else if (glfwGetKey(window, GLFW_KEY_9)) {
+				level.numberRocksLine = 4;
+				level.distanceBetweenRocksX = 18.f;
+				level.distanceFinishLine = 900.f;
+				level.boatSpeed.x = 15.f;
+				level.boatSpeed.z = 17.f;
 				level.posCameraY = 10.f;
 				selectLevel = false;
 				firstTime = true;
