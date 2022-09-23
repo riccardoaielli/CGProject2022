@@ -93,6 +93,10 @@ class MyProject : public BaseProject {
 	Texture lostPageTexture;
 	DescriptorSet lostPageDS;
 
+	Model wonPageModel;
+	Texture wonPageTexture;
+	DescriptorSet wonPageDS;
+
 	DescriptorSet DSglobal;
 	
 	// Here you set the main application parameters
@@ -104,9 +108,9 @@ class MyProject : public BaseProject {
 		initialBackgroundColor = {0.f, 0.f, 0.f, 1.f};
 		
 		// Descriptor pool sizes
-		uniformBlocksInPool = 3 + level.maxNumberRock + level.maxNumberLandscape * 2 +1 +1;
-		texturesInPool = 2 + level.maxNumberRock + level.maxNumberLandscape * 2 +1 +1;
-		setsInPool = 3 + level.maxNumberRock + level.maxNumberLandscape * 2 +1 +1;
+		uniformBlocksInPool = 4 + level.maxNumberRock + level.maxNumberLandscape * 2 +1 +1;
+		texturesInPool = 3 + level.maxNumberRock + level.maxNumberLandscape * 2 +1 +1;
+		setsInPool = 4 + level.maxNumberRock + level.maxNumberLandscape * 2 +1 +1;
 
 		std::srand(std::time(nullptr));
 	}
@@ -161,6 +165,17 @@ class MyProject : public BaseProject {
 		lostPageDS.init(this, &DSLobj, {
 						{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 						{1, TEXTURE, 0, &lostPageTexture}
+			});
+
+		/*-----------------------------------------------*/
+
+		/* INITIALIZETING THE WON PAGE MODEL AND TEXTURE*/
+
+		wonPageModel.init(this, "models/Square.obj");
+		wonPageTexture.init(this, "textures/CGYouWon.png");
+		wonPageDS.init(this, &DSLobj, {
+						{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+						{1, TEXTURE, 0, &wonPageTexture}
 			});
 
 		/*-----------------------------------------------*/
@@ -259,6 +274,10 @@ class MyProject : public BaseProject {
 		lostPageDS.cleanup();
 		lostPageTexture.cleanup();
 		lostPageModel.cleanup();
+
+		wonPageDS.cleanup();
+		wonPageTexture.cleanup();
+		wonPageModel.cleanup();
 
 		WaterTexture.cleanup();
 		WaterModel.cleanup();
@@ -407,6 +426,20 @@ class MyProject : public BaseProject {
 			0, nullptr);
 
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(lostPageModel.indices.size()), 1, 0, 0, 0);
+		
+		/*---------------------------------------------------*/
+
+		/* CREATING THE BUFFER FOR THE WON PAGE */
+		VkBuffer vertexBuffers7[] = { wonPageModel.vertexBuffer };
+		VkDeviceSize offsets7[] = { 0 };
+		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers7, offsets7);
+		vkCmdBindIndexBuffer(commandBuffer, wonPageModel.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+		vkCmdBindDescriptorSets(commandBuffer,
+			VK_PIPELINE_BIND_POINT_GRAPHICS,
+			P1.pipelineLayout, 1, 1, &wonPageDS.descriptorSets[currentImage],
+			0, nullptr);
+
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(wonPageModel.indices.size()), 1, 0, 0, 0);
 		
 		/*---------------------------------------------------*/
 	
@@ -558,17 +591,59 @@ class MyProject : public BaseProject {
 
 	void showLostPage(uint32_t currentImage) {
 
+		UniformBufferObject ubo{};
+		void* data;
+
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(boatObject.currentPos.x -4.f, 4.f, 0.f)) * glm::scale(glm::mat4(1.f), glm::vec3(1.f, 3.f, 4.f))
+			* glm::rotate(glm::mat4(1.f), glm::radians(90.f), glm::vec3(1.f, 0.f, 0.f))
+			* glm::rotate(glm::mat4(1.f), glm::radians(180.f), glm::vec3(0.f, 0.f, 1.f))
+			* glm::rotate(glm::mat4(1.f), glm::radians(75.f), glm::vec3(0.f, 1.f, 0.f));
+
+		vkMapMemory(device, lostPageDS.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
+		memcpy(data, &ubo, sizeof(ubo));
+		vkUnmapMemory(device, lostPageDS.uniformBuffersMemory[0][currentImage]);
+
 	}
 
-	void showWinPage(uint32_t currentImage) {
+	void showWonPage(uint32_t currentImage) {
+
+		UniformBufferObject ubo{};
+		void* data;
+
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(boatObject.currentPos.x -4.f, 4.f, 0.f)) * glm::scale(glm::mat4(1.f), glm::vec3(1.f, 3.f, 4.f))
+			* glm::rotate(glm::mat4(1.f), glm::radians(90.f), glm::vec3(1.f, 0.f, 0.f))
+			* glm::rotate(glm::mat4(1.f), glm::radians(180.f), glm::vec3(0.f, 0.f, 1.f))
+			* glm::rotate(glm::mat4(1.f), glm::radians(75.f), glm::vec3(0.f, 1.f, 0.f));
+
+		vkMapMemory(device, wonPageDS.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
+		memcpy(data, &ubo, sizeof(ubo));
+		vkUnmapMemory(device, wonPageDS.uniformBuffersMemory[0][currentImage]);
 
 	}
 
 	void hideLostPage(uint32_t currentImage) {
 
+		UniformBufferObject ubo{};
+		void* data;
+
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(1000.f, 0.f, 0.f));
+
+		vkMapMemory(device, lostPageDS.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
+		memcpy(data, &ubo, sizeof(ubo));
+		vkUnmapMemory(device, lostPageDS.uniformBuffersMemory[0][currentImage]);
+
 	}
 
-	void hideWinPage(uint32_t currentImage) {
+	void hideWonPage(uint32_t currentImage) {
+
+		UniformBufferObject ubo{};
+		void* data;
+
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(1000.f, 0.f, 0.f));
+
+		vkMapMemory(device, wonPageDS.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
+		memcpy(data, &ubo, sizeof(ubo));
+		vkUnmapMemory(device, wonPageDS.uniformBuffersMemory[0][currentImage]);
 
 	}
 
@@ -703,6 +778,7 @@ class MyProject : public BaseProject {
 			if (boatObject.currentPos.z +1.f < obj.currentPos.z + 2.8f && boatObject.currentPos.z - 1.f > obj.currentPos.z - 2.8f && 
 					(boatObject.currentPos.x + 2.f > obj.currentPos.x - 1.f && boatObject.currentPos.x - 2.4f < obj.currentPos.x + 1.f) ) {
 				stillPlaying = false;
+				showLostPage(currentImage);
 			}
 			if (boatObject.currentPos.x > obj.currentPos.x + 10.f) {
 				obj.currentPos = glm::vec3(obj.currentPos.x + level.distanceBetweenRocksX * (level.maxNumberRock/level.numberRocksLine), 0.f, (std::rand() % 5 - 2) * level.distanceBetweenRocksZ);
@@ -782,8 +858,15 @@ class MyProject : public BaseProject {
 		UniformBufferObject ubo{};
 		void* data;
 
+		
+		if (boatObject.currentPos.x - 4.f > level.distanceFinishLine - 1.f && boatObject.currentPos.x - 8.4f < level.distanceFinishLine + 1.f) {
+			stillPlaying = false;
+			showWonPage(currentImage);
+		}	
+
 		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(level.distanceFinishLine, 2.f, -2.f)) * glm::scale(glm::mat4(1.f), glm::vec3(0.05f, 0.03f, 0.08f))
-			* glm::rotate(glm::mat4(1.f), glm::radians(90.f), glm::vec3(0.f, 1.f, 0.f));
+			* glm::rotate(glm::mat4(1.f), glm::radians(90.f), glm::vec3(0.f, 1.f, 0.f))
+			* glm::rotate(glm::mat4(1.f), glm::radians(25.f), glm::vec3(1.f, 0.f, 0.f));
 
 		vkMapMemory(device, finishLineDS.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
 		memcpy(data, &ubo, sizeof(ubo));
