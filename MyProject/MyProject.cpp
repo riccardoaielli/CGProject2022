@@ -5,6 +5,8 @@
 //const std::string MODEL_PATH = "Assets/models/Boat.obj";
 //const std::string TEXTURE_PATH = "Assets/textures/Boat.bmp";
 
+
+
 // The uniform buffer object used in this example
 struct GlobalUniformBufferObject {
 	alignas(16) glm::mat4 view;
@@ -34,11 +36,11 @@ struct LandscapeObject {
 };
 
 struct DataPersonalization{
-	const int maxNumberRock = 20;
+	const int maxNumberRock = 50;
 	const int maxNumberLandscape = 10;
 	int numberRocksLine = 2;
 	float distanceBetweenRocksX = 10.f;
-	float distanceBetweenRocksZ = 4.f;
+	const float distanceBetweenRocksZ = 4.f;
 	float distanceFinishLine = 400.f;
 	glm::vec3 boatSpeed = glm::vec3(15.f, 0.f, 5.f);
 	float posCameraY = 0.f;
@@ -96,8 +98,8 @@ class MyProject : public BaseProject {
 	// Here you set the main application parameters
 	void setWindowParameters() {
 		// window size, titile and initial background
-		windowWidth = 2560;
-		windowHeight = 1440;
+		windowWidth = 1080;
+		windowHeight = 720;
 		windowTitle = "My Project";
 		initialBackgroundColor = {0.f, 0.f, 0.f, 1.f};
 		
@@ -456,7 +458,6 @@ class MyProject : public BaseProject {
 			if (glfwGetKey(window, GLFW_KEY_1)) {
 				level.numberRocksLine = 2;
 				level.distanceBetweenRocksX = 10.f;
-				level.distanceBetweenRocksZ = 4.f;
 				level.distanceFinishLine = 400.f;
 				level.boatSpeed.x = 5.f;
 				level.boatSpeed.z = 5.f;
@@ -465,12 +466,11 @@ class MyProject : public BaseProject {
 				firstTime = true;
 			}
 			else if (glfwGetKey(window, GLFW_KEY_2)) {
-				level.numberRocksLine = 2;
-				level.distanceBetweenRocksX = 10.f;
-				level.distanceBetweenRocksZ = 4.f;
+				level.numberRocksLine = 4;
+				level.distanceBetweenRocksX = 15.f;
 				level.distanceFinishLine = 400.f;
 				level.boatSpeed.x = 10.f;
-				level.boatSpeed.z = 7.f;
+				level.boatSpeed.z = 10.f;
 				level.posCameraY = 10.f;
 				selectLevel = false;
 				firstTime = true;
@@ -478,6 +478,22 @@ class MyProject : public BaseProject {
 			
 		}
 	}	
+
+	void showLostPage(uint32_t currentImage) {
+
+	}
+
+	void showWinPage(uint32_t currentImage) {
+
+	}
+
+	void hideLostPage(uint32_t currentImage) {
+
+	}
+
+	void hideWinPage(uint32_t currentImage) {
+
+	}
 
 	void hideWelcomePage(uint32_t currentImage) {
 
