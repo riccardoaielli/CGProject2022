@@ -5,7 +5,7 @@
 //const std::string MODEL_PATH = "Assets/models/Boat.obj";
 //const std::string TEXTURE_PATH = "Assets/textures/Boat.bmp";
 
-
+enum GameState {WELCOME_PAGE, PLAYING, LOST, WIN, RESET};
 
 // The uniform buffer object used in this example
 struct GlobalUniformBufferObject {
@@ -36,7 +36,7 @@ struct LandscapeObject {
 };
 
 struct DataPersonalization{
-	const int maxNumberRock = 50;
+	const int maxNumberRock = 60;
 	const int maxNumberLandscape = 10;
 	int numberRocksLine = 2;
 	float distanceBetweenRocksX = 10.f;
@@ -48,11 +48,9 @@ struct DataPersonalization{
 
 DataPersonalization level;
 
-bool selectLevel = true;
-bool stillPlaying = true;
+GameState state = WELCOME_PAGE;
+
 bool firstTime = true;
-
-
 
 // MAIN ! 
 class MyProject : public BaseProject {
@@ -212,8 +210,8 @@ class MyProject : public BaseProject {
 						{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 						{1, TEXTURE, 0, &GrassTexture}
 				});
-			obj.currentPosX += i;
-			i += 10.f;
+			//obj.currentPosX += i;
+			//i += 10.f;
 		}
 		
 		/*-------------------------------------------------------------------*/
@@ -232,7 +230,7 @@ class MyProject : public BaseProject {
 				});
 
 			/* INITIALIZING THE POSITION OF THE ROCKS */
-			obj.currentPos = glm::vec3(-20.f, 0.f, 0.f);
+			//obj.currentPos = glm::vec3(-20.f, 0.f, 0.f);
 			/*obj.currentPos = glm::vec3(i, 0.f, (std::rand()%5 -2)*level.distanceBetweenRocksZ);
 			if ((even % level.numberRocksLine) == 0) {
 				i += level.distanceBetweenRocksX;
@@ -455,7 +453,8 @@ class MyProject : public BaseProject {
 
 		/*---------------------------------------------------------------------*/
 
-		if (!selectLevel) {
+		switch (state) {
+		case PLAYING:
 
 			/*UBO FOR THE BOAT*/
 
@@ -482,112 +481,164 @@ class MyProject : public BaseProject {
 
 			/*---------------------------------------------------------------------*/
 
+			/* HIDING ALL PAGES */
+
 			hideWelcomePage(currentImage);
-			
+			hideLostPage(currentImage);
+			hideWonPage(currentImage);
 
-		}
-		else {
+			/*---------------------------------------------------------------------*/
+		break;
+		case WELCOME_PAGE:
 			updateWelcomePage(currentImage);
-			if (glfwGetKey(window, GLFW_KEY_1)) {
-				level.numberRocksLine = 1;
-				level.distanceBetweenRocksX = 15.f;
-				level.distanceFinishLine = 100.f;
-				level.boatSpeed.x = 5.f;
-				level.boatSpeed.z = 5.f;
-				level.posCameraY = 10.f;
-				selectLevel = false;
-				firstTime = true;
-			}
-			else if (glfwGetKey(window, GLFW_KEY_2)) {
-				level.numberRocksLine = 2;
-				level.distanceBetweenRocksX = 15.f;
-				level.distanceFinishLine = 240.f;
-				level.boatSpeed.x = 8.f;
-				level.boatSpeed.z = 8.f;
-				level.posCameraY = 10.f;
-				selectLevel = false;
-				firstTime = true;
-			}
-
-			else if (glfwGetKey(window, GLFW_KEY_3)) {
-				level.numberRocksLine = 3;
-				level.distanceBetweenRocksX = 15.f;
-				level.distanceFinishLine = 600.f;
-				level.boatSpeed.x = 10.f;
-				level.boatSpeed.z = 10.f;
-				level.posCameraY = 10.f;
-				selectLevel = false;
-				firstTime = true;
-			}
-
-			else if (glfwGetKey(window, GLFW_KEY_4)) {
-				level.numberRocksLine = 3;
-				level.distanceBetweenRocksX = 15.f;
-				level.distanceFinishLine = 660.f;
-				level.boatSpeed.x = 11.f;
-				level.boatSpeed.z = 10.f;
-				level.posCameraY = 10.f;
-				selectLevel = false;
-				firstTime = true;
-			}
-
-			else if (glfwGetKey(window, GLFW_KEY_5)) {
-				level.numberRocksLine = 4;
-				level.distanceBetweenRocksX = 17.f;
-				level.distanceFinishLine = 600.f;
-				level.boatSpeed.x = 10.f;
-				level.boatSpeed.z = 11.f;
-				level.posCameraY = 10.f;
-				selectLevel = false;
-				firstTime = true;
-			}
-
-			else if (glfwGetKey(window, GLFW_KEY_6)) {
-				level.numberRocksLine = 4;
-				level.distanceBetweenRocksX = 18.f;
-				level.distanceFinishLine = 660.f;
-				level.boatSpeed.x = 11.f;
-				level.boatSpeed.z = 12.f;
-				level.posCameraY = 10.f;
-				selectLevel = false;
-				firstTime = true;
-			}
-
-			else if (glfwGetKey(window, GLFW_KEY_7)) {
-				level.numberRocksLine = 4;
-				level.distanceBetweenRocksX = 18.f;
-				level.distanceFinishLine = 720.f;
-				level.boatSpeed.x = 12.f;
-				level.boatSpeed.z = 13.f;
-				level.posCameraY = 10.f;
-				selectLevel = false;
-				firstTime = true;
-			}
-
-			else if (glfwGetKey(window, GLFW_KEY_8)) {
-				level.numberRocksLine = 4;
-				level.distanceBetweenRocksX = 18.f;
-				level.distanceFinishLine = 780.f;
-				level.boatSpeed.x = 13.f;
-				level.boatSpeed.z = 15.f;
-				level.posCameraY = 10.f;
-				selectLevel = false;
-				firstTime = true;
-			}
-
-			else if (glfwGetKey(window, GLFW_KEY_9)) {
-				level.numberRocksLine = 4;
-				level.distanceBetweenRocksX = 18.f;
-				level.distanceFinishLine = 900.f;
-				level.boatSpeed.x = 15.f;
-				level.boatSpeed.z = 17.f;
-				level.posCameraY = 10.f;
-				selectLevel = false;
-				firstTime = true;
-			}
-			
+			selectLevel();
+		break;
+		case LOST:
+			updateLostPage(currentImage);
+			selectLevel();
+		break;
+		case WIN:
+			updateWonPage(currentImage);
+			selectLevel();
+		break;
+		case RESET:
+			resetLevel();
+			updateBoat(currentImage);
+			hideWelcomePage(currentImage);
+			hideLostPage(currentImage);
+			hideWonPage(currentImage);
+			state = PLAYING;
+		break;
 		}
+
+		
 	}	
+
+	void selectLevel() {
+		if (glfwGetKey(window, GLFW_KEY_1)) {
+			level.numberRocksLine = 1;
+			level.distanceBetweenRocksX = 15.f;
+			level.distanceFinishLine = 100.f;
+			level.boatSpeed.x = 5.f;
+			level.boatSpeed.z = 5.f;
+			level.posCameraY = 10.f;
+			state = RESET;
+			firstTime = true;
+
+		}
+		else if (glfwGetKey(window, GLFW_KEY_2)) {
+			level.numberRocksLine = 2;
+			level.distanceBetweenRocksX = 15.f;
+			level.distanceFinishLine = 240.f;
+			level.boatSpeed.x = 8.f;
+			level.boatSpeed.z = 8.f;
+			level.posCameraY = 10.f;
+			state = RESET;
+			firstTime = true;
+
+		}
+
+		else if (glfwGetKey(window, GLFW_KEY_3)) {
+			level.numberRocksLine = 3;
+			level.distanceBetweenRocksX = 15.f;
+			level.distanceFinishLine = 600.f;
+			level.boatSpeed.x = 10.f;
+			level.boatSpeed.z = 10.f;
+			level.posCameraY = 10.f;
+			state = RESET;
+			firstTime = true;
+
+		}
+
+		else if (glfwGetKey(window, GLFW_KEY_4)) {
+			level.numberRocksLine = 3;
+			level.distanceBetweenRocksX = 15.f;
+			level.distanceFinishLine = 660.f;
+			level.boatSpeed.x = 11.f;
+			level.boatSpeed.z = 10.f;
+			level.posCameraY = 10.f;
+			state = RESET;
+			firstTime = true;
+
+		}
+
+		else if (glfwGetKey(window, GLFW_KEY_5)) {
+			level.numberRocksLine = 4;
+			level.distanceBetweenRocksX = 17.f;
+			level.distanceFinishLine = 600.f;
+			level.boatSpeed.x = 10.f;
+			level.boatSpeed.z = 11.f;
+			level.posCameraY = 10.f;
+			state = RESET;
+			firstTime = true;
+
+		}
+
+		else if (glfwGetKey(window, GLFW_KEY_6)) {
+			level.numberRocksLine = 4;
+			level.distanceBetweenRocksX = 18.f;
+			level.distanceFinishLine = 660.f;
+			level.boatSpeed.x = 11.f;
+			level.boatSpeed.z = 12.f;
+			level.posCameraY = 10.f;
+			state = RESET;
+			firstTime = true;
+
+		}
+
+		else if (glfwGetKey(window, GLFW_KEY_7)) {
+			level.numberRocksLine = 4;
+			level.distanceBetweenRocksX = 18.f;
+			level.distanceFinishLine = 720.f;
+			level.boatSpeed.x = 12.f;
+			level.boatSpeed.z = 13.f;
+			level.posCameraY = 10.f;
+			state = RESET;
+			firstTime = true;
+
+		}
+
+		else if (glfwGetKey(window, GLFW_KEY_8)) {
+			level.numberRocksLine = 4;
+			level.distanceBetweenRocksX = 18.f;
+			level.distanceFinishLine = 780.f;
+			level.boatSpeed.x = 13.f;
+			level.boatSpeed.z = 15.f;
+			level.posCameraY = 10.f;
+			state = RESET;
+			firstTime = true;
+
+		}
+
+		else if (glfwGetKey(window, GLFW_KEY_9)) {
+			level.numberRocksLine = 4;
+			level.distanceBetweenRocksX = 18.f;
+			level.distanceFinishLine = 900.f;
+			level.boatSpeed.x = 15.f;
+			level.boatSpeed.z = 17.f;
+			level.posCameraY = 10.f;
+			state = RESET;
+			firstTime = true;
+		}
+	}
+
+	void resetLevel() {		
+
+		boatObject.currentPos.x = -5.f;
+		boatObject.currentPos.z = 0.f;
+
+		float i = -10.f;
+		for (auto& obj : landscapeObjects) {
+			obj.currentPosX = i;
+			i += 10.f;
+		}
+
+
+		for (auto& obj : rockObjects) {	
+			obj.currentPos = glm::vec3(-20.f, 0.f, 0.f);
+		}
+
+	}
 
 	void updateLostPage(uint32_t currentImage) {
 
@@ -752,26 +803,20 @@ class MyProject : public BaseProject {
 			z = 7 * 0.5 = 3.5
 		*/
 
-		for (auto& obj : rockObjects) {
-			//std::cout << obj.currentPosX << "\n";
-			ubo.model = glm::translate(glm::mat4(1.0f), obj.currentPos) * glm::scale(glm::mat4(1.0), glm::vec3(0.2, 0.5, 0.5))
-							* glm::rotate(glm::mat4(1.f), glm::radians(180.f), glm::vec3(0.f, 1.f, 0.f));
-			vkMapMemory(device, obj.ds.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
-			memcpy(data, &ubo, sizeof(ubo));
-			vkUnmapMemory(device, obj.ds.uniformBuffersMemory[0][currentImage]);
-		}
 		
-
 		if (firstTime) {
-			int even = 1;
+			int even = 0;
 			float i = level.distanceBetweenRocksX*2;
 			for (auto& obj : rockObjects) {
 
 				obj.currentPos = glm::vec3(i, 0.f, (std::rand() % 5 - 2) * level.distanceBetweenRocksZ);
-				if ((even % (level.numberRocksLine)) == 0) {
-					i += level.distanceBetweenRocksX;
-				}
 				even++;
+				std::cout << "CIAO " << i << " " << level.numberRocksLine << "\n";
+				if (even >= level.numberRocksLine) {
+					i += level.distanceBetweenRocksX;
+					even = 0;
+				}
+				
 			}
 			firstTime = false;
 		}
@@ -780,12 +825,23 @@ class MyProject : public BaseProject {
 		for (auto& obj : rockObjects) {
 			if (boatObject.currentPos.z +1.f < obj.currentPos.z + 2.8f && boatObject.currentPos.z - 1.f > obj.currentPos.z - 2.8f && 
 					(boatObject.currentPos.x + 2.f > obj.currentPos.x - 1.f && boatObject.currentPos.x - 2.4f < obj.currentPos.x + 1.f) ) {
-				stillPlaying = false;
-				updateLostPage(currentImage);
+				state = LOST;
 			}
+		}
+
+		for (auto& obj : rockObjects) {
+
 			if (boatObject.currentPos.x > obj.currentPos.x + 10.f) {
-				obj.currentPos = glm::vec3(obj.currentPos.x + level.distanceBetweenRocksX * (level.maxNumberRock/level.numberRocksLine), 0.f, (std::rand() % 5 - 2) * level.distanceBetweenRocksZ);
+				obj.currentPos = glm::vec3(obj.currentPos.x + level.distanceBetweenRocksX * (level.maxNumberRock / level.numberRocksLine), 0.f, (std::rand() % 5 - 2) * level.distanceBetweenRocksZ);
 				ubo.model = glm::translate(glm::mat4(1.f), obj.currentPos) * ubo.model;
+				vkMapMemory(device, obj.ds.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
+				memcpy(data, &ubo, sizeof(ubo));
+				vkUnmapMemory(device, obj.ds.uniformBuffersMemory[0][currentImage]);
+			}
+			else {
+				//std::cout << obj.currentPosX << "\n";
+				ubo.model = glm::translate(glm::mat4(1.0f), obj.currentPos) * glm::scale(glm::mat4(1.0), glm::vec3(0.2, 0.5, 0.5))
+					* glm::rotate(glm::mat4(1.f), glm::radians(180.f), glm::vec3(0.f, 1.f, 0.f));
 				vkMapMemory(device, obj.ds.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
 				memcpy(data, &ubo, sizeof(ubo));
 				vkUnmapMemory(device, obj.ds.uniformBuffersMemory[0][currentImage]);
@@ -804,7 +860,6 @@ class MyProject : public BaseProject {
 		last = time;
 
 		static glm::mat4 mat = glm::mat4(1.0f);
-		static glm::vec3 pos = glm::vec3(1.0f, 0.f, 0.f);
 		static float angle = glm::radians(0.f);
 
 		void* data;
@@ -813,23 +868,23 @@ class MyProject : public BaseProject {
 
 		/* ALWAYS INCREMENTING THE X POSITION OF 5.f FOR MOVING STRAIGHT */
 		if (glfwGetKey(this->window, GLFW_KEY_P))
-			stillPlaying = true;
+			state = PLAYING;
 		
-		if (stillPlaying) {
-			pos += glm::vec3(level.boatSpeed.x, 0.f, 0.f) * delta;
+		if (state == PLAYING) {
+			boatObject.currentPos += glm::vec3(level.boatSpeed.x, 0.f, 0.f) * delta;
 
 			/* UPDATING FOR MOVING RIGHT OR LEFT */
 			if (glfwGetKey(this->window, GLFW_KEY_D) || glfwGetKey(this->window, GLFW_KEY_RIGHT)) {
 				angle = angle < glm::radians(-10.f) ? glm::radians(-10.f) : angle + glm::radians(-1.f);
-				pos += glm::vec3(0.f, 0.f, level.boatSpeed.z) * delta;
-				if (pos.z > 10.f - 1.f)
-					pos.z = 9.f;
+				boatObject.currentPos += glm::vec3(0.f, 0.f, level.boatSpeed.z) * delta;
+				if (boatObject.currentPos.z > 10.f - 1.f)
+					boatObject.currentPos.z = 9.f;
 			}
 			else if (glfwGetKey(this->window, GLFW_KEY_A) || glfwGetKey(this->window, GLFW_KEY_LEFT)) {
 				angle = angle > glm::radians(10.f) ? glm::radians(10.f) : angle + glm::radians(1.f);
-				pos -= glm::vec3(0.f, 0.f, level.boatSpeed.z) * delta;
-				if (pos.z < -10.f + 1.f)
-					pos.z = -9.f;
+				boatObject.currentPos -= glm::vec3(0.f, 0.f, level.boatSpeed.z) * delta;
+				if (boatObject.currentPos.z < -10.f + 1.f)
+					boatObject.currentPos.z = -9.f;
 			}
 			else {
 				if (angle > glm::radians(0.f))
@@ -843,11 +898,11 @@ class MyProject : public BaseProject {
 		
 
 
-		ubo.model = glm::translate(glm::mat4(1.0f), pos) * glm::scale(glm::mat4(1.0), glm::vec3(0.005, 0.005, 0.005))
+		ubo.model = glm::translate(glm::mat4(1.0f), boatObject.currentPos) * glm::scale(glm::mat4(1.0), glm::vec3(0.005, 0.005, 0.005))
 			* glm::rotate(glm::mat4(1.0f), static_cast<float>(glm::radians(180.f)), glm::vec3(0.f, 1.f, 0.f))
 			* glm::rotate(glm::mat4(1.0f), angle, glm::vec3(0.f, 1.f, 0.f));
 
-		boatObject.currentPos = pos;
+		//boatObject.currentPos = pos;
 
 		std::cout << boatObject.currentPos.x<<"  "<< boatObject.currentPos.z << "\n";
 
@@ -863,8 +918,7 @@ class MyProject : public BaseProject {
 
 		
 		if (boatObject.currentPos.x - 4.f > level.distanceFinishLine - 1.f && boatObject.currentPos.x - 8.4f < level.distanceFinishLine + 1.f) {
-			stillPlaying = false;
-			updateWonPage(currentImage);
+			state = WIN;
 		}	
 
 		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(level.distanceFinishLine, 2.f, -2.f)) * glm::scale(glm::mat4(1.f), glm::vec3(0.05f, 0.03f, 0.08f))
