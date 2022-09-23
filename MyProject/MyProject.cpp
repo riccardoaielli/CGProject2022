@@ -102,8 +102,8 @@ class MyProject : public BaseProject {
 	// Here you set the main application parameters
 	void setWindowParameters() {
 		// window size, titile and initial background
-		windowWidth = 1080;
-		windowHeight = 720;
+		windowWidth = 1224;
+		windowHeight = 792;
 		windowTitle = "My Project";
 		initialBackgroundColor = {0.f, 0.f, 0.f, 1.f};
 		
@@ -589,15 +589,16 @@ class MyProject : public BaseProject {
 		}
 	}	
 
-	void showLostPage(uint32_t currentImage) {
+	void updateLostPage(uint32_t currentImage) {
 
 		UniformBufferObject ubo{};
 		void* data;
 
-		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(boatObject.currentPos.x -4.f, 4.f, 0.f)) * glm::scale(glm::mat4(1.f), glm::vec3(1.f, 3.f, 4.f))
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(boatObject.currentPos.x -4.f, 5.f, 0.f))
 			* glm::rotate(glm::mat4(1.f), glm::radians(90.f), glm::vec3(1.f, 0.f, 0.f))
 			* glm::rotate(glm::mat4(1.f), glm::radians(180.f), glm::vec3(0.f, 0.f, 1.f))
-			* glm::rotate(glm::mat4(1.f), glm::radians(75.f), glm::vec3(0.f, 1.f, 0.f));
+			* glm::rotate(glm::mat4(1.f), glm::radians(51.3f), glm::vec3(0.f, 1.f, 0.f))
+			* glm::scale(glm::mat4(1.f), glm::vec3(1.f, 6.132f, 4.f));
 
 		vkMapMemory(device, lostPageDS.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
 		memcpy(data, &ubo, sizeof(ubo));
@@ -605,15 +606,16 @@ class MyProject : public BaseProject {
 
 	}
 
-	void showWonPage(uint32_t currentImage) {
+	void updateWonPage(uint32_t currentImage) {
 
 		UniformBufferObject ubo{};
 		void* data;
 
-		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(boatObject.currentPos.x -4.f, 4.f, 0.f)) * glm::scale(glm::mat4(1.f), glm::vec3(1.f, 3.f, 4.f))
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(boatObject.currentPos.x -4.f, 5.f, 0.f))
 			* glm::rotate(glm::mat4(1.f), glm::radians(90.f), glm::vec3(1.f, 0.f, 0.f))
 			* glm::rotate(glm::mat4(1.f), glm::radians(180.f), glm::vec3(0.f, 0.f, 1.f))
-			* glm::rotate(glm::mat4(1.f), glm::radians(75.f), glm::vec3(0.f, 1.f, 0.f));
+			* glm::rotate(glm::mat4(1.f), glm::radians(51.3f), glm::vec3(0.f, 1.f, 0.f))
+			* glm::scale(glm::mat4(1.f), glm::vec3(1.f, 6.132f, 4.f));
 
 		vkMapMemory(device, wonPageDS.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
 		memcpy(data, &ubo, sizeof(ubo));
@@ -626,7 +628,7 @@ class MyProject : public BaseProject {
 		UniformBufferObject ubo{};
 		void* data;
 
-		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(1000.f, 0.f, 0.f));
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0.f, 1000.f, 0.f));
 
 		vkMapMemory(device, lostPageDS.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
 		memcpy(data, &ubo, sizeof(ubo));
@@ -639,7 +641,7 @@ class MyProject : public BaseProject {
 		UniformBufferObject ubo{};
 		void* data;
 
-		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(1000.f, 0.f, 0.f));
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0.f, 1000.f, 0.f));
 
 		vkMapMemory(device, wonPageDS.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
 		memcpy(data, &ubo, sizeof(ubo));
@@ -652,7 +654,7 @@ class MyProject : public BaseProject {
 		UniformBufferObject ubo{};
 		void* data;
 
-		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(1000.f, 0.f, 0.f));
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0.f, 1000.f, 0.f));
 
 		vkMapMemory(device, welcomeDS.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
 		memcpy(data, &ubo, sizeof(ubo));
@@ -665,9 +667,10 @@ class MyProject : public BaseProject {
 		UniformBufferObject ubo{};
 		void* data;
 
-		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(-5.f, 0.f, 0.f)) * glm::scale(glm::mat4(1.f), glm::vec3(1.f, 3.f, 4.f))
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(-4.f, 0.f, 0.f))
 			* glm::rotate(glm::mat4(1.f), glm::radians(90.f), glm::vec3(1.f, 0.f, 0.f))
-			* glm::rotate(glm::mat4(1.f), glm::radians(180.f), glm::vec3(0.f, 0.f, 1.f));
+			* glm::rotate(glm::mat4(1.f), glm::radians(180.f), glm::vec3(0.f, 0.f, 1.f))
+			* glm::scale(glm::mat4(1.f), glm::vec3(1.f, 6.132f, 4.f));
 
 		vkMapMemory(device, welcomeDS.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
 		memcpy(data, &ubo, sizeof(ubo));
@@ -760,7 +763,7 @@ class MyProject : public BaseProject {
 		
 
 		if (firstTime) {
-			int even = 0;
+			int even = 1;
 			float i = level.distanceBetweenRocksX*2;
 			for (auto& obj : rockObjects) {
 
@@ -778,7 +781,7 @@ class MyProject : public BaseProject {
 			if (boatObject.currentPos.z +1.f < obj.currentPos.z + 2.8f && boatObject.currentPos.z - 1.f > obj.currentPos.z - 2.8f && 
 					(boatObject.currentPos.x + 2.f > obj.currentPos.x - 1.f && boatObject.currentPos.x - 2.4f < obj.currentPos.x + 1.f) ) {
 				stillPlaying = false;
-				showLostPage(currentImage);
+				updateLostPage(currentImage);
 			}
 			if (boatObject.currentPos.x > obj.currentPos.x + 10.f) {
 				obj.currentPos = glm::vec3(obj.currentPos.x + level.distanceBetweenRocksX * (level.maxNumberRock/level.numberRocksLine), 0.f, (std::rand() % 5 - 2) * level.distanceBetweenRocksZ);
@@ -861,7 +864,7 @@ class MyProject : public BaseProject {
 		
 		if (boatObject.currentPos.x - 4.f > level.distanceFinishLine - 1.f && boatObject.currentPos.x - 8.4f < level.distanceFinishLine + 1.f) {
 			stillPlaying = false;
-			showWonPage(currentImage);
+			updateWonPage(currentImage);
 		}	
 
 		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(level.distanceFinishLine, 2.f, -2.f)) * glm::scale(glm::mat4(1.f), glm::vec3(0.05f, 0.03f, 0.08f))
