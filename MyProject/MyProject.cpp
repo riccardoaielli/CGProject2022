@@ -41,6 +41,7 @@ struct DataPersonalization{
 	float distanceBetweenRocksZ = 4.f;
 	float distanceFinishLine = 400.f;
 	glm::vec3 boatSpeed = glm::vec3(15.f, 0.f, 5.f);
+	float posCameraY = 0.f;
 };
 
 DataPersonalization level;
@@ -80,8 +81,15 @@ class MyProject : public BaseProject {
 
 	Model finishLineModel;
 	Texture finishLineTexture;
-
 	DescriptorSet finishLineDS;
+
+	Model welcomeModel;
+	Texture welcomeTexture;
+	DescriptorSet welcomeDS;
+
+	Model lostPageModel;
+	Texture lostPageTexture;
+	DescriptorSet lostPageDS;
 
 	DescriptorSet DSglobal;
 	
@@ -91,12 +99,12 @@ class MyProject : public BaseProject {
 		windowWidth = 2560;
 		windowHeight = 1440;
 		windowTitle = "My Project";
-		initialBackgroundColor = {51.f, 153.f, 255.f, 1.f};
+		initialBackgroundColor = {0.f, 0.f, 0.f, 1.f};
 		
 		// Descriptor pool sizes
-		uniformBlocksInPool = 3 + level.maxNumberRock + level.maxNumberLandscape * 2 +1;
-		texturesInPool = 2 + level.maxNumberRock + level.maxNumberLandscape * 2 +1;
-		setsInPool = 3 + level.maxNumberRock + level.maxNumberLandscape * 2 +1;
+		uniformBlocksInPool = 3 + level.maxNumberRock + level.maxNumberLandscape * 2 +1 +1;
+		texturesInPool = 2 + level.maxNumberRock + level.maxNumberLandscape * 2 +1 +1;
+		setsInPool = 3 + level.maxNumberRock + level.maxNumberLandscape * 2 +1 +1;
 
 		std::srand(std::time(nullptr));
 	}
@@ -123,19 +131,39 @@ class MyProject : public BaseProject {
 		P1.init(this, "shaders/vert.spv", "shaders/frag.spv", {&DSLglobal, &DSLobj});
 
 		// Models, textures and Descriptors (values assigned to the uniforms)
+
+		/* INITIALIZATING THE BOAT MODEL AND TEXTURE */
 		boatObject.model.init(this, "models/Boat.obj");
 		boatObject.texture.init(this, "textures/Boat.bmp");
 		boatObject.ds.init(this, &DSLobj, {
-		// the second parameter, is a pointer to the Uniform Set Layout of this set
-		// the last parameter is an array, with one element per binding of the set.
-		// first  elmenet : the binding number
-		// second element : UNIFORM or TEXTURE (an enum) depending on the type
-		// third  element : only for UNIFORMs, the size of the corresponding C++ object
-		// fourth element : only for TEXTUREs, the pointer to the corresponding texture object
 					{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 					{1, TEXTURE, 0, &boatObject.texture}
 		});
 
+		/*--------------------------------------------------*/
+
+		/* INITIALIZETING THE WELCOME PAGE MODEL AND TEXTURE */
+		welcomeModel.init(this, "models/Square.obj");
+		welcomeTexture.init(this, "textures/CGWelcome.png");
+		welcomeDS.init(this, &DSLobj, {
+						{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+						{1, TEXTURE, 0, &welcomeTexture}
+			});
+
+		/*----------------------------------------------------*/
+
+		/* INITIALIZETING THE LOST PAGE MODEL AND TEXTURE*/
+
+		lostPageModel.init(this, "models/Square.obj");
+		lostPageTexture.init(this, "textures/CGYouLost.png");
+		lostPageDS.init(this, &DSLobj, {
+						{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+						{1, TEXTURE, 0, &lostPageTexture}
+			});
+
+		/*-----------------------------------------------*/
+
+		/* INITIALIZATING THE FINISH LINE MODEL AND TEXXTURE*/
 		finishLineModel.init(this, "models/FinishLine1.obj");
 		finishLineTexture.init(this, "textures/FinishLine.png");
 		finishLineDS.init(this, &DSLobj, {
@@ -148,6 +176,7 @@ class MyProject : public BaseProject {
 						{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 						{1, TEXTURE, 0, &finishLineTexture}
 			});
+		/*---------------------------------------------------*/
 
 		
 		/* INITIALIZING MODEL AND TEXTURE OF GRASS AND WATER + INITIALIZING THE DESCRIPTIVE SET AND POSITION */
@@ -169,6 +198,8 @@ class MyProject : public BaseProject {
 			obj.currentPosX += i;
 			i += 10.f;
 		}
+		
+		/*-------------------------------------------------------------------*/
 
 
 		/* INITIALIZING MODEL AND TEXTURE OF ROCK1 + INITIALIZING THE DESCRIPTIVE SET */
@@ -219,6 +250,17 @@ class MyProject : public BaseProject {
 		finishLineTexture.cleanup();
 		finishLineModel.cleanup();
 
+		welcomeDS.cleanup();
+		welcomeTexture.cleanup();
+		welcomeModel.cleanup();
+
+		lostPageDS.cleanup();
+		lostPageTexture.cleanup();
+		lostPageModel.cleanup();
+
+		WaterTexture.cleanup();
+		WaterModel.cleanup();
+
 		Rock1Texture.cleanup();
 		Rock1Model.cleanup();
 
@@ -261,10 +303,11 @@ class MyProject : public BaseProject {
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(boatObject.model.indices.size()), 1, 0, 0, 0);
 
 
-		VkBuffer vertexBuffers5[] = { finishLineModel.vertexBuffer };
+		/* CREATING BUFFER FOR FINISH LINE */
+		VkBuffer vertexBuffers1[] = { finishLineModel.vertexBuffer };
 		// property .vertexBuffer of models, contains the VkBuffer handle to its vertex buffer
-		VkDeviceSize offsets5[] = { 0 };
-		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers5, offsets5);
+		VkDeviceSize offsets1[] = { 0 };
+		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers1, offsets1);
 		vkCmdBindIndexBuffer(commandBuffer, finishLineModel.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 		vkCmdBindDescriptorSets(commandBuffer,
 			VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -273,12 +316,30 @@ class MyProject : public BaseProject {
 
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(finishLineModel.indices.size()), 1, 0, 0, 0);
 
+		/*-----------------------------------------------------------*/
+
+		/* CREATING BUFFER FOR THE WELCOME */
+
+		VkBuffer vertexBuffers2[] = { welcomeModel.vertexBuffer };
+		// property .vertexBuffer of models, contains the VkBuffer handle to its vertex buffer
+		VkDeviceSize offsets2[] = { 0 };
+		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers2, offsets2);
+		vkCmdBindIndexBuffer(commandBuffer, welcomeModel.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+		vkCmdBindDescriptorSets(commandBuffer,
+			VK_PIPELINE_BIND_POINT_GRAPHICS,
+			P1.pipelineLayout, 1, 1, &welcomeDS.descriptorSets[currentImage],
+			0, nullptr);
+
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(welcomeModel.indices.size()), 1, 0, 0, 0);
+
+		/*-----------------------------------------------------------*/
+
 
 		/* Creating the buffer and the Command for the RIVER*/
 
-		VkBuffer vertexBuffers4[] = { GrassModel.vertexBuffer };
-		VkDeviceSize offsets4[] = { 0 };
-		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers4, offsets4);
+		VkBuffer vertexBuffers3[] = { GrassModel.vertexBuffer };
+		VkDeviceSize offsets3[] = { 0 };
+		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers3, offsets3);
 		vkCmdBindIndexBuffer(commandBuffer, GrassModel.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
 		for (auto& obj : landscapeObjects) {
@@ -292,10 +353,13 @@ class MyProject : public BaseProject {
 
 		}
 
+		/*-----------------------------------------------------------*/
 
-		VkBuffer vertexBuffers1[] = { WaterModel.vertexBuffer };
-		VkDeviceSize offsets1[] = { 0 };
-		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers1, offsets1);
+		/* CREATING THE BUFFER AND COMMAND FOR THE WATER */
+
+		VkBuffer vertexBuffers4[] = { WaterModel.vertexBuffer };
+		VkDeviceSize offsets4[] = { 0 };
+		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers4, offsets4);
 		vkCmdBindIndexBuffer(commandBuffer, WaterModel.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
 		for (auto& obj : landscapeObjects) {
@@ -308,14 +372,14 @@ class MyProject : public BaseProject {
 			vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(WaterModel.indices.size()), 1, 0, 0, 0);
 
 		}
-		
+		/*-----------------------------------------------------------*/
 
 
 		/* CREATING THE BUFFER AND THE COMMAND FOR THE ROCKS */
 
-		VkBuffer vertexBuffers2[] = { Rock1Model.vertexBuffer };
-		VkDeviceSize offsets2[] = { 0 };
-		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers2, offsets2);
+		VkBuffer vertexBuffers5[] = { Rock1Model.vertexBuffer };
+		VkDeviceSize offsets5[] = { 0 };
+		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers5, offsets5);
 		vkCmdBindIndexBuffer(commandBuffer, Rock1Model.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
 		for (auto& obj : rockObjects) {
@@ -330,7 +394,19 @@ class MyProject : public BaseProject {
 
 		/*---------------------------------------------------*/
 
+		/* CREATING THE BUFFER FOR THE LOST PAGE */
+		VkBuffer vertexBuffers6[] = { lostPageModel.vertexBuffer };
+		VkDeviceSize offsets6[] = { 0 };
+		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers6, offsets6);
+		vkCmdBindIndexBuffer(commandBuffer, lostPageModel.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+		vkCmdBindDescriptorSets(commandBuffer,
+			VK_PIPELINE_BIND_POINT_GRAPHICS,
+			P1.pipelineLayout, 1, 1, &lostPageDS.descriptorSets[currentImage],
+			0, nullptr);
+
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(lostPageModel.indices.size()), 1, 0, 0, 0);
 		
+		/*---------------------------------------------------*/
 	
 	}
 
@@ -338,13 +414,13 @@ class MyProject : public BaseProject {
 	// Very likely this will be where you will be writing the logic of your application.
 	void updateUniformBuffer(uint32_t currentImage) {
 		
+		/* UPDATE THE GLOBAL UBO */
+
+		updateGlobalUBO(currentImage);
+
+		/*---------------------------------------------------------------------*/
+
 		if (!selectLevel) {
-
-			/* UPDATE THE GLOBAL UBO */
-
-			updateGlobalUBO(currentImage);
-
-			/*---------------------------------------------------------------------*/
 
 			/*UBO FOR THE BOAT*/
 
@@ -371,8 +447,12 @@ class MyProject : public BaseProject {
 
 			/*---------------------------------------------------------------------*/
 
+			hideWelcomePage(currentImage);
+			
+
 		}
 		else {
+			updateWelcomePage(currentImage);
 			if (glfwGetKey(window, GLFW_KEY_1)) {
 				level.numberRocksLine = 2;
 				level.distanceBetweenRocksX = 10.f;
@@ -380,6 +460,7 @@ class MyProject : public BaseProject {
 				level.distanceFinishLine = 400.f;
 				level.boatSpeed.x = 5.f;
 				level.boatSpeed.z = 5.f;
+				level.posCameraY = 10.f;
 				selectLevel = false;
 				firstTime = true;
 			}
@@ -390,19 +471,48 @@ class MyProject : public BaseProject {
 				level.distanceFinishLine = 400.f;
 				level.boatSpeed.x = 10.f;
 				level.boatSpeed.z = 7.f;
+				level.posCameraY = 10.f;
 				selectLevel = false;
 				firstTime = true;
 			}
+			
 		}
 	}	
 
+	void hideWelcomePage(uint32_t currentImage) {
+
+		UniformBufferObject ubo{};
+		void* data;
+
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(1000.f, 0.f, 0.f));
+
+		vkMapMemory(device, welcomeDS.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
+		memcpy(data, &ubo, sizeof(ubo));
+		vkUnmapMemory(device, welcomeDS.uniformBuffersMemory[0][currentImage]);
+
+	}
+
+	void updateWelcomePage(uint32_t currentImage) {
+
+		UniformBufferObject ubo{};
+		void* data;
+
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(-5.f, 0.f, 0.f)) * glm::scale(glm::mat4(1.f), glm::vec3(1.f, 3.f, 4.f))
+			* glm::rotate(glm::mat4(1.f), glm::radians(90.f), glm::vec3(1.f, 0.f, 0.f))
+			* glm::rotate(glm::mat4(1.f), glm::radians(180.f), glm::vec3(0.f, 0.f, 1.f));
+
+		vkMapMemory(device, welcomeDS.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
+		memcpy(data, &ubo, sizeof(ubo));
+		vkUnmapMemory(device, welcomeDS.uniformBuffersMemory[0][currentImage]);
+
+	}
 
 	void updateGlobalUBO(uint32_t currentImage) {
 
 		/*Creating the Global UBO and copy the data to the GPU*/
 		GlobalUniformBufferObject gubo{};
 
-		gubo.view = glm::lookAt(glm::vec3(-8.0f + boatObject.currentPos.x, 10.0f, 0.f),
+		gubo.view = glm::lookAt(glm::vec3(-8.0f + boatObject.currentPos.x, level.posCameraY, 0.f),
 			glm::vec3(boatObject.currentPos.x, 0.f, 0.f),
 			glm::vec3(0.0f, 1.0f, 0.0f));
 
