@@ -104,8 +104,8 @@ class MyProject : public BaseProject {
 	// Here you set the main application parameters
 	void setWindowParameters() {
 		// window size, titile and initial background
-		windowWidth = 1224;
-		windowHeight = 792;
+		windowWidth = 2000;
+		windowHeight = 1000;
 		windowTitle = "My Project";
 		initialBackgroundColor = {0.f, 0.f, 0.f, 1.f};
 		
@@ -489,13 +489,6 @@ class MyProject : public BaseProject {
 		switch (state) {
 		case PLAYING:
 
-			/*UBO FOR THE BOAT*/
-
-			updateBoat(currentImage);
-
-			/*---------------------------------------------------------------------*/
-
-
 			/* UBO FOR THE ROCKS */
 
 			updateRocks(currentImage);
@@ -505,6 +498,12 @@ class MyProject : public BaseProject {
 			/* UBO FOR THE GRASS AND WATER */
 
 			updateLandscapes(currentImage);
+
+			/*---------------------------------------------------------------------*/
+
+			/*UBO FOR THE BOAT*/
+
+			updateBoat(currentImage);
 
 			/*---------------------------------------------------------------------*/
 
@@ -520,6 +519,7 @@ class MyProject : public BaseProject {
 			hideLostPage(currentImage);
 			hideWonPage(currentImage);
 			/*---------------------------------------------------------------------*/
+
 		break;
 		case WELCOME_PAGE:
 			updateWelcomePage(currentImage);
@@ -527,10 +527,12 @@ class MyProject : public BaseProject {
 		break;
 		case LOST:
 			updateLostPage(currentImage);
+			updateBoat(currentImage);
 			selectLevel();
 		break;
 		case WIN:
 			updateWonPage(currentImage);
+			updateBoat(currentImage);
 			selectLevel();
 		break;
 		case RESET:
@@ -965,23 +967,25 @@ class MyProject : public BaseProject {
 				else if (angle < glm::radians(0.f))
 					angle += glm::radians(1.f);
 			}
+
+			
 		}
 
-		
-		
-
-
 		ubo.model = glm::translate(glm::mat4(1.0f), boatObject.currentPos) * glm::scale(glm::mat4(1.0), glm::vec3(0.005, 0.005, 0.005))
-			* glm::rotate(glm::mat4(1.0f), static_cast<float>(glm::radians(180.f)), glm::vec3(0.f, 1.f, 0.f))
-			* glm::rotate(glm::mat4(1.0f), angle, glm::vec3(0.f, 1.f, 0.f));
+				* glm::rotate(glm::mat4(1.0f), static_cast<float>(glm::radians(180.f)), glm::vec3(0.f, 1.f, 0.f))
+				* glm::rotate(glm::mat4(1.0f), angle, glm::vec3(0.f, 1.f, 0.f));
 
-		//boatObject.currentPos = pos;
+			//boatObject.currentPos = pos;
 
-		std::cout << boatObject.currentPos.x<<"  "<< boatObject.currentPos.z << "\n";
+			std::cout << boatObject.currentPos.x << "  " << boatObject.currentPos.z << "\n";
 
-		vkMapMemory(device, boatObject.ds.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
-		memcpy(data, &ubo, sizeof(ubo));
-		vkUnmapMemory(device, boatObject.ds.uniformBuffersMemory[0][currentImage]);
+			vkMapMemory(device, boatObject.ds.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
+			memcpy(data, &ubo, sizeof(ubo));
+			vkUnmapMemory(device, boatObject.ds.uniformBuffersMemory[0][currentImage]);
+		
+
+
+		
 
 	}
 
