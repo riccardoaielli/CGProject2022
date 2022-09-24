@@ -5,7 +5,9 @@
 //const std::string MODEL_PATH = "Assets/models/Boat.obj";
 //const std::string TEXTURE_PATH = "Assets/textures/Boat.bmp";
 
-enum GameState {WELCOME_PAGE, PLAYING, LOST, WIN, RESET};
+enum GameState {WELCOME_PAGE, PLAYING, LOST, WIN, PAUSE};
+
+enum Level {l0, l1, l2, l3, l4, l5, l6, l7, l8, l9};
 
 // The uniform buffer object used in this example
 struct GlobalUniformBufferObject {
@@ -49,6 +51,8 @@ struct DataPersonalization{
 DataPersonalization level;
 
 GameState state = WELCOME_PAGE;
+
+Level levelLabel = l1;
 
 bool firstTime = true;
 
@@ -98,6 +102,8 @@ class MyProject : public BaseProject {
 	Model l1Model;
 	Texture l1Texture;
 	DescriptorSet l1DS;
+	Texture l2Texture;
+	DescriptorSet l2DS;
 
 	DescriptorSet DSglobal;
 	
@@ -110,9 +116,9 @@ class MyProject : public BaseProject {
 		initialBackgroundColor = {0.f, 0.f, 0.f, 1.f};
 		
 		// Descriptor pool sizes
-		uniformBlocksInPool = 5 + level.maxNumberRock + level.maxNumberLandscape * 2 +1 +1;
-		texturesInPool = 4 + level.maxNumberRock + level.maxNumberLandscape * 2 +1 +1;
-		setsInPool = 5 + level.maxNumberRock + level.maxNumberLandscape * 2 +1 +1;
+		uniformBlocksInPool = 6 + level.maxNumberRock + level.maxNumberLandscape * 2 +1 +1;
+		texturesInPool = 5 + level.maxNumberRock + level.maxNumberLandscape * 2 +1 +1;
+		setsInPool = 6 + level.maxNumberRock + level.maxNumberLandscape * 2 +1 +1;
 
 		std::srand(std::time(nullptr));
 	}
@@ -182,13 +188,18 @@ class MyProject : public BaseProject {
 
 		/*-----------------------------------------------*/
 
-		/* INITIALIZETING THE LEVEL 1 MODEL AND TEXTURE*/
+		/* INITIALIZETING THE LEVEL MODEL AND LEVEL'S TEXTURES*/
 
 		l1Model.init(this, "models/Square.obj");
 		l1Texture.init(this, "textures/CGL1.png");
 		l1DS.init(this, &DSLobj, {
 						{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 						{1, TEXTURE, 0, &l1Texture}
+			});
+		l2Texture.init(this, "textures/CGL2.png");
+		l2DS.init(this, &DSLobj, {
+						{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+						{1, TEXTURE, 0, &l2Texture}
 			});
 
 		/*-----------------------------------------------*/
@@ -295,6 +306,9 @@ class MyProject : public BaseProject {
 		l1DS.cleanup();
 		l1Texture.cleanup();
 		l1Model.cleanup();
+		l2Texture.cleanup();
+		l2DS.cleanup();
+
 
 		WaterTexture.cleanup();
 		WaterModel.cleanup();
@@ -473,6 +487,20 @@ class MyProject : public BaseProject {
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(l1Model.indices.size()), 1, 0, 0, 0);
 		
 		/*---------------------------------------------------*/
+
+		/* CREATING THE BUFFER FOR THE level2 */
+		VkBuffer vertexBuffers9[] = { l1Model.vertexBuffer };
+		VkDeviceSize offsets9[] = { 0 };
+		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers9, offsets9);
+		vkCmdBindIndexBuffer(commandBuffer, l1Model.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+		vkCmdBindDescriptorSets(commandBuffer,
+			VK_PIPELINE_BIND_POINT_GRAPHICS,
+			P1.pipelineLayout, 1, 1, &l2DS.descriptorSets[currentImage],
+			0, nullptr);
+
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(l1Model.indices.size()), 1, 0, 0, 0);
+		
+		/*---------------------------------------------------*/
 	
 	}
 
@@ -514,6 +542,13 @@ class MyProject : public BaseProject {
 
 			/*---------------------------------------------------------------------*/
 
+			/* UBO FOR THE LEVEL */
+
+			updateLevel(currentImage);
+
+			/*---------------------------------------------------------------------*/
+
+
 			/* HIDING ALL PAGES */
 
 			hideWelcomePage(currentImage);
@@ -523,22 +558,21 @@ class MyProject : public BaseProject {
 		break;
 		case WELCOME_PAGE:
 			updateWelcomePage(currentImage);
-			selectLevel();
+			selectLevel(currentImage);
 		break;
 		case LOST:
+			updateLevel(currentImage);
+			updateBoat(currentImage);
 			updateLostPage(currentImage);
-			selectLevel();
+			selectLevel(currentImage);
 		break;
 		case WIN:
-			updateWonPage(currentImage);
-			selectLevel();
-		break;
-		case RESET:
-			resetLevel();
+			updateLevel(currentImage);
 			updateBoat(currentImage);
-			hideWelcomePage(currentImage);
-			hideLostPage(currentImage);
-			hideWonPage(currentImage);
+			updateWonPage(currentImage);
+			selectLevel(currentImage);
+		break;
+		case PAUSE:
 			state = PLAYING;
 		break;
 		}
@@ -546,7 +580,7 @@ class MyProject : public BaseProject {
 		
 	}	
 
-	void selectLevel() {
+	void selectLevel(uint32_t currentImage) {
 		if (glfwGetKey(window, GLFW_KEY_1)) {
 			level.numberRocksLine = 1;
 			level.distanceBetweenRocksX = 15.f;
@@ -554,9 +588,9 @@ class MyProject : public BaseProject {
 			level.boatSpeed.x = 5.f;
 			level.boatSpeed.z = 5.f;
 			level.posCameraY = 10.f;
-			state = RESET;
 			firstTime = true;
-
+			resetLevel(currentImage);
+			levelLabel = l1;
 		}
 		else if (glfwGetKey(window, GLFW_KEY_2)) {
 			level.numberRocksLine = 2;
@@ -565,8 +599,9 @@ class MyProject : public BaseProject {
 			level.boatSpeed.x = 8.f;
 			level.boatSpeed.z = 8.f;
 			level.posCameraY = 10.f;
-			state = RESET;
 			firstTime = true;
+			resetLevel(currentImage);
+			levelLabel = l2;
 
 		}
 
@@ -577,7 +612,6 @@ class MyProject : public BaseProject {
 			level.boatSpeed.x = 10.f;
 			level.boatSpeed.z = 10.f;
 			level.posCameraY = 10.f;
-			state = RESET;
 			firstTime = true;
 
 		}
@@ -589,8 +623,9 @@ class MyProject : public BaseProject {
 			level.boatSpeed.x = 11.f;
 			level.boatSpeed.z = 10.f;
 			level.posCameraY = 10.f;
-			state = RESET;
 			firstTime = true;
+			resetLevel(currentImage);
+			levelLabel = l1;
 
 		}
 
@@ -601,7 +636,8 @@ class MyProject : public BaseProject {
 			level.boatSpeed.x = 10.f;
 			level.boatSpeed.z = 11.f;
 			level.posCameraY = 10.f;
-			state = RESET;
+			resetLevel(currentImage);
+			levelLabel = l1;
 			firstTime = true;
 
 		}
@@ -613,7 +649,8 @@ class MyProject : public BaseProject {
 			level.boatSpeed.x = 11.f;
 			level.boatSpeed.z = 12.f;
 			level.posCameraY = 10.f;
-			state = RESET;
+			resetLevel(currentImage);
+			levelLabel = l1;
 			firstTime = true;
 
 		}
@@ -625,7 +662,8 @@ class MyProject : public BaseProject {
 			level.boatSpeed.x = 12.f;
 			level.boatSpeed.z = 13.f;
 			level.posCameraY = 10.f;
-			state = RESET;
+			resetLevel(currentImage);
+			levelLabel = l1;
 			firstTime = true;
 
 		}
@@ -637,7 +675,8 @@ class MyProject : public BaseProject {
 			level.boatSpeed.x = 13.f;
 			level.boatSpeed.z = 15.f;
 			level.posCameraY = 10.f;
-			state = RESET;
+			resetLevel(currentImage);
+			levelLabel = l1;
 			firstTime = true;
 
 		}
@@ -649,7 +688,8 @@ class MyProject : public BaseProject {
 			level.boatSpeed.x = 15.f;
 			level.boatSpeed.z = 17.f;
 			level.posCameraY = 10.f;
-			state = RESET;
+			resetLevel(currentImage);
+			levelLabel = l1;
 			firstTime = true;
 		}
 
@@ -660,12 +700,21 @@ class MyProject : public BaseProject {
 			level.boatSpeed.x = 32.f;
 			level.boatSpeed.z = 35.f;
 			level.posCameraY = 10.f;
-			state = RESET;
+			resetLevel(currentImage);
+			levelLabel = l1;
 			firstTime = true;
 		}
 	}
 
-	void resetLevel() {		
+	void resetLevel(uint32_t currentImage) {		
+
+		hideL1(currentImage);
+		hideL2(currentImage);
+		updateBoat(currentImage);
+		hideWelcomePage(currentImage);
+		hideLostPage(currentImage);
+		hideWonPage(currentImage);
+		state = PAUSE;
 
 		boatObject.currentPos.x = -5.f;
 		boatObject.currentPos.z = 0.f;
@@ -717,20 +766,53 @@ class MyProject : public BaseProject {
 
 	}
 
-	void updateL1Page(uint32_t currentImage) {
+	void updateLevel(uint32_t currentImage) {
+
+		hideL1(currentImage);
+		hideL2(currentImage);
+
+		switch (levelLabel) {
+		case l1:
+			updateL1(currentImage);
+			break;
+		case l2:
+			updateL2(currentImage);
+			break;
+		}
+
+	}
+
+	void updateL1(uint32_t currentImage) {
 
 		UniformBufferObject ubo{};
 		void* data;
 
-		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(boatObject.currentPos.x -6.f, 1.5f, 0.f))
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(boatObject.currentPos.x +0.8f, 8.3f, -7.97f))
 			* glm::rotate(glm::mat4(1.f), glm::radians(90.f), glm::vec3(1.f, 0.f, 0.f))
 			* glm::rotate(glm::mat4(1.f), glm::radians(180.f), glm::vec3(0.f, 0.f, 1.f))
 			* glm::rotate(glm::mat4(1.f), glm::radians(51.3f), glm::vec3(0.f, 1.f, 0.f))
-			* glm::scale(glm::mat4(1.f), glm::vec3(1.f, 7.25f, 2.25f));
+			* glm::scale(glm::mat4(1.f), glm::vec3(1.f, 2.674f, 1.f));
 
 		vkMapMemory(device, l1DS.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
 		memcpy(data, &ubo, sizeof(ubo));
 		vkUnmapMemory(device, l1DS.uniformBuffersMemory[0][currentImage]);
+
+	}
+
+	void updateL2(uint32_t currentImage) {
+
+		UniformBufferObject ubo{};
+		void* data;
+
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(boatObject.currentPos.x +0.8f, 8.3f, -7.97f))
+			* glm::rotate(glm::mat4(1.f), glm::radians(90.f), glm::vec3(1.f, 0.f, 0.f))
+			* glm::rotate(glm::mat4(1.f), glm::radians(180.f), glm::vec3(0.f, 0.f, 1.f))
+			* glm::rotate(glm::mat4(1.f), glm::radians(51.3f), glm::vec3(0.f, 1.f, 0.f))
+			* glm::scale(glm::mat4(1.f), glm::vec3(1.f, 2.674f, 1.f));
+
+		vkMapMemory(device, l2DS.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
+		memcpy(data, &ubo, sizeof(ubo));
+		vkUnmapMemory(device, l2DS.uniformBuffersMemory[0][currentImage]);
 
 	}
 
@@ -760,7 +842,7 @@ class MyProject : public BaseProject {
 
 	}
 
-	void hideL1Page(uint32_t currentImage) {
+	void hideL1(uint32_t currentImage) {
 
 		UniformBufferObject ubo{};
 		void* data;
@@ -770,6 +852,19 @@ class MyProject : public BaseProject {
 		vkMapMemory(device, l1DS.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
 		memcpy(data, &ubo, sizeof(ubo));
 		vkUnmapMemory(device, l1DS.uniformBuffersMemory[0][currentImage]);
+
+	}
+
+	void hideL2(uint32_t currentImage) {
+
+		UniformBufferObject ubo{};
+		void* data;
+
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0.f, 1000.f, 0.f));
+
+		vkMapMemory(device, l2DS.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
+		memcpy(data, &ubo, sizeof(ubo));
+		vkUnmapMemory(device, l2DS.uniformBuffersMemory[0][currentImage]);
 
 	}
 
