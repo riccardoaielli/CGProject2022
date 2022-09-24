@@ -620,6 +620,17 @@ class MyProject : public BaseProject {
 			state = RESET;
 			firstTime = true;
 		}
+
+		else if (glfwGetKey(window, GLFW_KEY_0)) {
+				level.numberRocksLine = 4;
+				level.distanceBetweenRocksX = 18.f;
+				level.distanceFinishLine = 2400.f;
+				level.boatSpeed.x = 30.f;
+				level.boatSpeed.z = 35.f;
+				level.posCameraY = 10.f;
+				selectLevel = false;
+				firstTime = true;
+		}
 	}
 
 	void resetLevel() {		
@@ -645,11 +656,11 @@ class MyProject : public BaseProject {
 		UniformBufferObject ubo{};
 		void* data;
 
-		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(boatObject.currentPos.x -4.f, 5.f, 0.f))
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(boatObject.currentPos.x -6.f, 1.5f, 0.f))
 			* glm::rotate(glm::mat4(1.f), glm::radians(90.f), glm::vec3(1.f, 0.f, 0.f))
 			* glm::rotate(glm::mat4(1.f), glm::radians(180.f), glm::vec3(0.f, 0.f, 1.f))
 			* glm::rotate(glm::mat4(1.f), glm::radians(51.3f), glm::vec3(0.f, 1.f, 0.f))
-			* glm::scale(glm::mat4(1.f), glm::vec3(1.f, 6.132f, 4.f));
+			* glm::scale(glm::mat4(1.f), glm::vec3(1.f, 7.25f, 2.25f));
 
 		vkMapMemory(device, lostPageDS.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
 		memcpy(data, &ubo, sizeof(ubo));
@@ -662,11 +673,11 @@ class MyProject : public BaseProject {
 		UniformBufferObject ubo{};
 		void* data;
 
-		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(boatObject.currentPos.x -4.f, 5.f, 0.f))
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(boatObject.currentPos.x -6.f, 1.5f, 0.f))
 			* glm::rotate(glm::mat4(1.f), glm::radians(90.f), glm::vec3(1.f, 0.f, 0.f))
 			* glm::rotate(glm::mat4(1.f), glm::radians(180.f), glm::vec3(0.f, 0.f, 1.f))
 			* glm::rotate(glm::mat4(1.f), glm::radians(51.3f), glm::vec3(0.f, 1.f, 0.f))
-			* glm::scale(glm::mat4(1.f), glm::vec3(1.f, 6.132f, 4.f));
+			* glm::scale(glm::mat4(1.f), glm::vec3(1.f, 7.25f, 2.25f));
 
 		vkMapMemory(device, wonPageDS.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
 		memcpy(data, &ubo, sizeof(ubo));
