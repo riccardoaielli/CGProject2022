@@ -95,6 +95,10 @@ class MyProject : public BaseProject {
 	Texture wonPageTexture;
 	DescriptorSet wonPageDS;
 
+	Model l1Model;
+	Texture l1Texture;
+	DescriptorSet l1DS;
+
 	DescriptorSet DSglobal;
 	
 	// Here you set the main application parameters
@@ -106,9 +110,9 @@ class MyProject : public BaseProject {
 		initialBackgroundColor = {0.f, 0.f, 0.f, 1.f};
 		
 		// Descriptor pool sizes
-		uniformBlocksInPool = 4 + level.maxNumberRock + level.maxNumberLandscape * 2 +1 +1;
-		texturesInPool = 3 + level.maxNumberRock + level.maxNumberLandscape * 2 +1 +1;
-		setsInPool = 4 + level.maxNumberRock + level.maxNumberLandscape * 2 +1 +1;
+		uniformBlocksInPool = 5 + level.maxNumberRock + level.maxNumberLandscape * 2 +1 +1;
+		texturesInPool = 4 + level.maxNumberRock + level.maxNumberLandscape * 2 +1 +1;
+		setsInPool = 5 + level.maxNumberRock + level.maxNumberLandscape * 2 +1 +1;
 
 		std::srand(std::time(nullptr));
 	}
@@ -174,6 +178,17 @@ class MyProject : public BaseProject {
 		wonPageDS.init(this, &DSLobj, {
 						{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 						{1, TEXTURE, 0, &wonPageTexture}
+			});
+
+		/*-----------------------------------------------*/
+
+		/* INITIALIZETING THE LEVEL 1 MODEL AND TEXTURE*/
+
+		l1Model.init(this, "models/Square.obj");
+		l1Texture.init(this, "textures/CGL1.png");
+		l1DS.init(this, &DSLobj, {
+						{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+						{1, TEXTURE, 0, &l1Texture}
 			});
 
 		/*-----------------------------------------------*/
@@ -276,6 +291,10 @@ class MyProject : public BaseProject {
 		wonPageDS.cleanup();
 		wonPageTexture.cleanup();
 		wonPageModel.cleanup();
+
+		l1DS.cleanup();
+		l1Texture.cleanup();
+		l1Model.cleanup();
 
 		WaterTexture.cleanup();
 		WaterModel.cleanup();
@@ -440,6 +459,20 @@ class MyProject : public BaseProject {
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(wonPageModel.indices.size()), 1, 0, 0, 0);
 		
 		/*---------------------------------------------------*/
+
+		/* CREATING THE BUFFER FOR THE level1 */
+		VkBuffer vertexBuffers8[] = { l1Model.vertexBuffer };
+		VkDeviceSize offsets8[] = { 0 };
+		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers8, offsets8);
+		vkCmdBindIndexBuffer(commandBuffer, l1Model.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+		vkCmdBindDescriptorSets(commandBuffer,
+			VK_PIPELINE_BIND_POINT_GRAPHICS,
+			P1.pipelineLayout, 1, 1, &l1DS.descriptorSets[currentImage],
+			0, nullptr);
+
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(l1Model.indices.size()), 1, 0, 0, 0);
+		
+		/*---------------------------------------------------*/
 	
 	}
 
@@ -486,7 +519,6 @@ class MyProject : public BaseProject {
 			hideWelcomePage(currentImage);
 			hideLostPage(currentImage);
 			hideWonPage(currentImage);
-
 			/*---------------------------------------------------------------------*/
 		break;
 		case WELCOME_PAGE:
@@ -622,14 +654,14 @@ class MyProject : public BaseProject {
 		}
 
 		else if (glfwGetKey(window, GLFW_KEY_0)) {
-				level.numberRocksLine = 4;
-				level.distanceBetweenRocksX = 18.f;
-				level.distanceFinishLine = 2400.f;
-				level.boatSpeed.x = 30.f;
-				level.boatSpeed.z = 35.f;
-				level.posCameraY = 10.f;
-				selectLevel = false;
-				firstTime = true;
+			level.numberRocksLine = 4;
+			level.distanceBetweenRocksX = 18.f;
+			level.distanceFinishLine = 2400.f;
+			level.boatSpeed.x = 32.f;
+			level.boatSpeed.z = 35.f;
+			level.posCameraY = 10.f;
+			state = RESET;
+			firstTime = true;
 		}
 	}
 
@@ -685,6 +717,23 @@ class MyProject : public BaseProject {
 
 	}
 
+	void updateL1Page(uint32_t currentImage) {
+
+		UniformBufferObject ubo{};
+		void* data;
+
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(boatObject.currentPos.x -6.f, 1.5f, 0.f))
+			* glm::rotate(glm::mat4(1.f), glm::radians(90.f), glm::vec3(1.f, 0.f, 0.f))
+			* glm::rotate(glm::mat4(1.f), glm::radians(180.f), glm::vec3(0.f, 0.f, 1.f))
+			* glm::rotate(glm::mat4(1.f), glm::radians(51.3f), glm::vec3(0.f, 1.f, 0.f))
+			* glm::scale(glm::mat4(1.f), glm::vec3(1.f, 7.25f, 2.25f));
+
+		vkMapMemory(device, l1DS.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
+		memcpy(data, &ubo, sizeof(ubo));
+		vkUnmapMemory(device, l1DS.uniformBuffersMemory[0][currentImage]);
+
+	}
+
 	void hideLostPage(uint32_t currentImage) {
 
 		UniformBufferObject ubo{};
@@ -708,6 +757,19 @@ class MyProject : public BaseProject {
 		vkMapMemory(device, wonPageDS.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
 		memcpy(data, &ubo, sizeof(ubo));
 		vkUnmapMemory(device, wonPageDS.uniformBuffersMemory[0][currentImage]);
+
+	}
+
+	void hideL1Page(uint32_t currentImage) {
+
+		UniformBufferObject ubo{};
+		void* data;
+
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0.f, 1000.f, 0.f));
+
+		vkMapMemory(device, l1DS.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
+		memcpy(data, &ubo, sizeof(ubo));
+		vkUnmapMemory(device, l1DS.uniformBuffersMemory[0][currentImage]);
 
 	}
 
