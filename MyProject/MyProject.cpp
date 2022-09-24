@@ -99,11 +99,31 @@ class MyProject : public BaseProject {
 	Texture wonPageTexture;
 	DescriptorSet wonPageDS;
 
+	Model infoModel;
+	Texture infoTexture;
+	DescriptorSet infoDS;
+
 	Model l1Model;
+	Texture l0Texture;
+	DescriptorSet l0DS;
 	Texture l1Texture;
 	DescriptorSet l1DS;
 	Texture l2Texture;
 	DescriptorSet l2DS;
+	Texture l3Texture;
+	DescriptorSet l3DS;
+	Texture l4Texture;
+	DescriptorSet l4DS;
+	Texture l5Texture;
+	DescriptorSet l5DS;
+	Texture l6Texture;
+	DescriptorSet l6DS;
+	Texture l7Texture;
+	DescriptorSet l7DS;
+	Texture l8Texture;
+	DescriptorSet l8DS;
+	Texture l9Texture;
+	DescriptorSet l9DS;
 
 	DescriptorSet DSglobal;
 	
@@ -116,9 +136,9 @@ class MyProject : public BaseProject {
 		initialBackgroundColor = {0.f, 0.f, 0.f, 1.f};
 		
 		// Descriptor pool sizes
-		uniformBlocksInPool = 6 + level.maxNumberRock + level.maxNumberLandscape * 2 +1 +1;
-		texturesInPool = 5 + level.maxNumberRock + level.maxNumberLandscape * 2 +1 +1;
-		setsInPool = 6 + level.maxNumberRock + level.maxNumberLandscape * 2 +1 +1;
+		uniformBlocksInPool = 15 + level.maxNumberRock + level.maxNumberLandscape * 2 +1 +1;
+		texturesInPool = 14 + level.maxNumberRock + level.maxNumberLandscape * 2 +1 +1;
+		setsInPool = 15 + level.maxNumberRock + level.maxNumberLandscape * 2 +1 +1;
 
 		std::srand(std::time(nullptr));
 	}
@@ -188,9 +208,25 @@ class MyProject : public BaseProject {
 
 		/*-----------------------------------------------*/
 
+		/* INITIALIZETING THE INFO MODEL AND TEXTURE*/
+
+		infoModel.init(this, "models/Square.obj");
+		infoTexture.init(this, "textures/CGInfo.png");
+		infoDS.init(this, &DSLobj, {
+						{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+						{1, TEXTURE, 0, &infoTexture}
+			});
+
+		/*-----------------------------------------------*/
+
 		/* INITIALIZETING THE LEVEL MODEL AND LEVEL'S TEXTURES*/
 
 		l1Model.init(this, "models/Square.obj");
+		l0Texture.init(this, "textures/CGL0.png");
+		l0DS.init(this, &DSLobj, {
+						{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+						{1, TEXTURE, 0, &l0Texture}
+			});
 		l1Texture.init(this, "textures/CGL1.png");
 		l1DS.init(this, &DSLobj, {
 						{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
@@ -200,6 +236,41 @@ class MyProject : public BaseProject {
 		l2DS.init(this, &DSLobj, {
 						{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
 						{1, TEXTURE, 0, &l2Texture}
+			});
+		l3Texture.init(this, "textures/CGL3.png");
+		l3DS.init(this, &DSLobj, {
+						{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+						{1, TEXTURE, 0, &l3Texture}
+			});
+		l4Texture.init(this, "textures/CGL4.png");
+		l4DS.init(this, &DSLobj, {
+						{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+						{1, TEXTURE, 0, &l4Texture}
+			});
+		l5Texture.init(this, "textures/CGL5.png");
+		l5DS.init(this, &DSLobj, {
+						{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+						{1, TEXTURE, 0, &l5Texture}
+			});
+		l6Texture.init(this, "textures/CGL6.png");
+		l6DS.init(this, &DSLobj, {
+						{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+						{1, TEXTURE, 0, &l6Texture}
+			});
+		l7Texture.init(this, "textures/CGL7.png");
+		l7DS.init(this, &DSLobj, {
+						{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+						{1, TEXTURE, 0, &l7Texture}
+			});
+		l8Texture.init(this, "textures/CGL8.png");
+		l8DS.init(this, &DSLobj, {
+						{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+						{1, TEXTURE, 0, &l8Texture}
+			});
+		l9Texture.init(this, "textures/CGL9.png");
+		l9DS.init(this, &DSLobj, {
+						{0, UNIFORM, sizeof(UniformBufferObject), nullptr},
+						{1, TEXTURE, 0, &l9Texture}
 			});
 
 		/*-----------------------------------------------*/
@@ -303,11 +374,31 @@ class MyProject : public BaseProject {
 		wonPageTexture.cleanup();
 		wonPageModel.cleanup();
 
+		infoDS.cleanup();
+		infoTexture.cleanup();
+		infoModel.cleanup();
+
+		l0DS.cleanup();
+		l0Texture.cleanup();
 		l1DS.cleanup();
 		l1Texture.cleanup();
-		l1Model.cleanup();
-		l2Texture.cleanup();
 		l2DS.cleanup();
+		l2Texture.cleanup();
+		l3DS.cleanup();
+		l3Texture.cleanup();
+		l4DS.cleanup();
+		l4Texture.cleanup();
+		l5DS.cleanup();
+		l5Texture.cleanup();
+		l6DS.cleanup();
+		l6Texture.cleanup();
+		l7DS.cleanup();
+		l7Texture.cleanup();
+		l8DS.cleanup();
+		l8Texture.cleanup();
+		l9DS.cleanup();
+		l9Texture.cleanup();
+		l1Model.cleanup();
 
 
 		WaterTexture.cleanup();
@@ -474,10 +565,38 @@ class MyProject : public BaseProject {
 		
 		/*---------------------------------------------------*/
 
-		/* CREATING THE BUFFER FOR THE level1 */
+		/* CREATING THE BUFFER FOR THE INFO */
+		VkBuffer vertexBuffers18[] = { infoModel.vertexBuffer };
+		VkDeviceSize offsets18[] = { 0 };
+		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers18, offsets18);
+		vkCmdBindIndexBuffer(commandBuffer, infoModel.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+		vkCmdBindDescriptorSets(commandBuffer,
+			VK_PIPELINE_BIND_POINT_GRAPHICS,
+			P1.pipelineLayout, 1, 1, &infoDS.descriptorSets[currentImage],
+			0, nullptr);
+
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(infoModel.indices.size()), 1, 0, 0, 0);
+		
+		/*---------------------------------------------------*/
+
+		/* CREATING THE BUFFER FOR THE level0 */
 		VkBuffer vertexBuffers8[] = { l1Model.vertexBuffer };
 		VkDeviceSize offsets8[] = { 0 };
 		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers8, offsets8);
+		vkCmdBindIndexBuffer(commandBuffer, l1Model.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+		vkCmdBindDescriptorSets(commandBuffer,
+			VK_PIPELINE_BIND_POINT_GRAPHICS,
+			P1.pipelineLayout, 1, 1, &l0DS.descriptorSets[currentImage],
+			0, nullptr);
+
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(l1Model.indices.size()), 1, 0, 0, 0);
+		
+		/*---------------------------------------------------*/
+
+		/* CREATING THE BUFFER FOR THE level1 */
+		VkBuffer vertexBuffers9[] = { l1Model.vertexBuffer };
+		VkDeviceSize offsets9[] = { 0 };
+		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers9, offsets9);
 		vkCmdBindIndexBuffer(commandBuffer, l1Model.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 		vkCmdBindDescriptorSets(commandBuffer,
 			VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -489,13 +608,111 @@ class MyProject : public BaseProject {
 		/*---------------------------------------------------*/
 
 		/* CREATING THE BUFFER FOR THE level2 */
-		VkBuffer vertexBuffers9[] = { l1Model.vertexBuffer };
-		VkDeviceSize offsets9[] = { 0 };
-		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers9, offsets9);
+		VkBuffer vertexBuffers10[] = { l1Model.vertexBuffer };
+		VkDeviceSize offsets10[] = { 0 };
+		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers10, offsets10);
 		vkCmdBindIndexBuffer(commandBuffer, l1Model.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 		vkCmdBindDescriptorSets(commandBuffer,
 			VK_PIPELINE_BIND_POINT_GRAPHICS,
 			P1.pipelineLayout, 1, 1, &l2DS.descriptorSets[currentImage],
+			0, nullptr);
+
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(l1Model.indices.size()), 1, 0, 0, 0);
+		
+		/*---------------------------------------------------*/
+
+		/* CREATING THE BUFFER FOR THE level3 */
+		VkBuffer vertexBuffers11[] = { l1Model.vertexBuffer };
+		VkDeviceSize offsets11[] = { 0 };
+		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers11, offsets11);
+		vkCmdBindIndexBuffer(commandBuffer, l1Model.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+		vkCmdBindDescriptorSets(commandBuffer,
+			VK_PIPELINE_BIND_POINT_GRAPHICS,
+			P1.pipelineLayout, 1, 1, &l3DS.descriptorSets[currentImage],
+			0, nullptr);
+
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(l1Model.indices.size()), 1, 0, 0, 0);
+		
+		/*---------------------------------------------------*/
+
+		/* CREATING THE BUFFER FOR THE level4 */
+		VkBuffer vertexBuffers12[] = { l1Model.vertexBuffer };
+		VkDeviceSize offsets12[] = { 0 };
+		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers12, offsets12);
+		vkCmdBindIndexBuffer(commandBuffer, l1Model.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+		vkCmdBindDescriptorSets(commandBuffer,
+			VK_PIPELINE_BIND_POINT_GRAPHICS,
+			P1.pipelineLayout, 1, 1, &l4DS.descriptorSets[currentImage],
+			0, nullptr);
+
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(l1Model.indices.size()), 1, 0, 0, 0);
+		
+		/*---------------------------------------------------*/
+
+		/* CREATING THE BUFFER FOR THE level5 */
+		VkBuffer vertexBuffers13[] = { l1Model.vertexBuffer };
+		VkDeviceSize offsets13[] = { 0 };
+		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers13, offsets13);
+		vkCmdBindIndexBuffer(commandBuffer, l1Model.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+		vkCmdBindDescriptorSets(commandBuffer,
+			VK_PIPELINE_BIND_POINT_GRAPHICS,
+			P1.pipelineLayout, 1, 1, &l5DS.descriptorSets[currentImage],
+			0, nullptr);
+
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(l1Model.indices.size()), 1, 0, 0, 0);
+		
+		/*---------------------------------------------------*/
+
+		/* CREATING THE BUFFER FOR THE level6 */
+		VkBuffer vertexBuffers14[] = { l1Model.vertexBuffer };
+		VkDeviceSize offsets14[] = { 0 };
+		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers14, offsets14);
+		vkCmdBindIndexBuffer(commandBuffer, l1Model.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+		vkCmdBindDescriptorSets(commandBuffer,
+			VK_PIPELINE_BIND_POINT_GRAPHICS,
+			P1.pipelineLayout, 1, 1, &l6DS.descriptorSets[currentImage],
+			0, nullptr);
+
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(l1Model.indices.size()), 1, 0, 0, 0);
+		
+		/*---------------------------------------------------*/
+
+		/* CREATING THE BUFFER FOR THE level7 */
+		VkBuffer vertexBuffers15[] = { l1Model.vertexBuffer };
+		VkDeviceSize offsets15[] = { 0 };
+		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers15, offsets15);
+		vkCmdBindIndexBuffer(commandBuffer, l1Model.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+		vkCmdBindDescriptorSets(commandBuffer,
+			VK_PIPELINE_BIND_POINT_GRAPHICS,
+			P1.pipelineLayout, 1, 1, &l7DS.descriptorSets[currentImage],
+			0, nullptr);
+
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(l1Model.indices.size()), 1, 0, 0, 0);
+		
+		/*---------------------------------------------------*/
+
+		/* CREATING THE BUFFER FOR THE level8 */
+		VkBuffer vertexBuffers16[] = { l1Model.vertexBuffer };
+		VkDeviceSize offsets16[] = { 0 };
+		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers16, offsets16);
+		vkCmdBindIndexBuffer(commandBuffer, l1Model.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+		vkCmdBindDescriptorSets(commandBuffer,
+			VK_PIPELINE_BIND_POINT_GRAPHICS,
+			P1.pipelineLayout, 1, 1, &l8DS.descriptorSets[currentImage],
+			0, nullptr);
+
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(l1Model.indices.size()), 1, 0, 0, 0);
+		
+		/*---------------------------------------------------*/
+
+		/* CREATING THE BUFFER FOR THE level9 */
+		VkBuffer vertexBuffers17[] = { l1Model.vertexBuffer };
+		VkDeviceSize offsets17[] = { 0 };
+		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers17, offsets17);
+		vkCmdBindIndexBuffer(commandBuffer, l1Model.indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+		vkCmdBindDescriptorSets(commandBuffer,
+			VK_PIPELINE_BIND_POINT_GRAPHICS,
+			P1.pipelineLayout, 1, 1, &l9DS.descriptorSets[currentImage],
 			0, nullptr);
 
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(l1Model.indices.size()), 1, 0, 0, 0);
@@ -541,6 +758,11 @@ class MyProject : public BaseProject {
 
 			/*---------------------------------------------------------------------*/
 
+			/* UBO FOR THE INFO */
+
+			updateInfo(currentImage);
+
+			/*---------------------------------------------------------------------*/
 
 			/* HIDING ALL PAGES */
 
@@ -555,12 +777,14 @@ class MyProject : public BaseProject {
 			selectLevel(currentImage);
 		break;
 		case LOST:
+			updateInfo(currentImage);
 			updateLevel(currentImage);
 			updateBoat(currentImage);
 			updateLostPage(currentImage);
 			selectLevel(currentImage);
 		break;
 		case WIN:
+			updateInfo(currentImage);
 			updateLevel(currentImage);
 			updateBoat(currentImage);
 			updateWonPage(currentImage);
@@ -583,7 +807,7 @@ class MyProject : public BaseProject {
 	void selectLevel(uint32_t currentImage) {
 		if (glfwGetKey(window, GLFW_KEY_1)) {
 			level.numberRocksLine = 1;
-			level.distanceBetweenRocksX = 15.f;
+			level.distanceBetweenRocksX = 14.f;
 			level.distanceFinishLine = 100.f;
 			level.boatSpeed.x = 5.f;
 			level.boatSpeed.z = 5.f;
@@ -594,7 +818,7 @@ class MyProject : public BaseProject {
 		}
 		else if (glfwGetKey(window, GLFW_KEY_2)) {
 			level.numberRocksLine = 2;
-			level.distanceBetweenRocksX = 15.f;
+			level.distanceBetweenRocksX = 14.f;
 			level.distanceFinishLine = 240.f;
 			level.boatSpeed.x = 8.f;
 			level.boatSpeed.z = 8.f;
@@ -607,63 +831,65 @@ class MyProject : public BaseProject {
 
 		else if (glfwGetKey(window, GLFW_KEY_3)) {
 			level.numberRocksLine = 3;
-			level.distanceBetweenRocksX = 15.f;
+			level.distanceBetweenRocksX = 14.f;
 			level.distanceFinishLine = 600.f;
 			level.boatSpeed.x = 10.f;
 			level.boatSpeed.z = 10.f;
 			level.posCameraY = 10.f;
 			firstTime = true;
+			resetLevel(currentImage);
+			levelLabel = l3;
 
 		}
 
 		else if (glfwGetKey(window, GLFW_KEY_4)) {
 			level.numberRocksLine = 3;
-			level.distanceBetweenRocksX = 15.f;
+			level.distanceBetweenRocksX = 14.f;
 			level.distanceFinishLine = 660.f;
 			level.boatSpeed.x = 11.f;
 			level.boatSpeed.z = 10.f;
 			level.posCameraY = 10.f;
 			firstTime = true;
 			resetLevel(currentImage);
-			levelLabel = l1;
+			levelLabel = l4;
 
 		}
 
 		else if (glfwGetKey(window, GLFW_KEY_5)) {
 			level.numberRocksLine = 4;
-			level.distanceBetweenRocksX = 17.f;
+			level.distanceBetweenRocksX = 15.f;
 			level.distanceFinishLine = 600.f;
 			level.boatSpeed.x = 10.f;
 			level.boatSpeed.z = 11.f;
 			level.posCameraY = 10.f;
 			resetLevel(currentImage);
-			levelLabel = l1;
+			levelLabel = l5;
 			firstTime = true;
 
 		}
 
 		else if (glfwGetKey(window, GLFW_KEY_6)) {
 			level.numberRocksLine = 4;
-			level.distanceBetweenRocksX = 18.f;
+			level.distanceBetweenRocksX = 16.f;
 			level.distanceFinishLine = 660.f;
 			level.boatSpeed.x = 11.f;
 			level.boatSpeed.z = 12.f;
 			level.posCameraY = 10.f;
 			resetLevel(currentImage);
-			levelLabel = l1;
+			levelLabel = l6;
 			firstTime = true;
 
 		}
 
 		else if (glfwGetKey(window, GLFW_KEY_7)) {
 			level.numberRocksLine = 4;
-			level.distanceBetweenRocksX = 18.f;
+			level.distanceBetweenRocksX = 16.f;
 			level.distanceFinishLine = 720.f;
 			level.boatSpeed.x = 12.f;
 			level.boatSpeed.z = 13.f;
 			level.posCameraY = 10.f;
 			resetLevel(currentImage);
-			levelLabel = l1;
+			levelLabel = l7;
 			firstTime = true;
 
 		}
@@ -671,12 +897,12 @@ class MyProject : public BaseProject {
 		else if (glfwGetKey(window, GLFW_KEY_8)) {
 			level.numberRocksLine = 4;
 			level.distanceBetweenRocksX = 18.f;
-			level.distanceFinishLine = 780.f;
-			level.boatSpeed.x = 13.f;
-			level.boatSpeed.z = 15.f;
+			level.distanceFinishLine = 900.f;
+			level.boatSpeed.x = 15.f;
+			level.boatSpeed.z = 16.f;
 			level.posCameraY = 10.f;
 			resetLevel(currentImage);
-			levelLabel = l1;
+			levelLabel = l8;
 			firstTime = true;
 
 		}
@@ -684,12 +910,12 @@ class MyProject : public BaseProject {
 		else if (glfwGetKey(window, GLFW_KEY_9)) {
 			level.numberRocksLine = 4;
 			level.distanceBetweenRocksX = 18.f;
-			level.distanceFinishLine = 900.f;
-			level.boatSpeed.x = 15.f;
-			level.boatSpeed.z = 17.f;
+			level.distanceFinishLine = 1020.f;
+			level.boatSpeed.x = 17.f;
+			level.boatSpeed.z = 19.f;
 			level.posCameraY = 10.f;
 			resetLevel(currentImage);
-			levelLabel = l1;
+			levelLabel = l9;
 			firstTime = true;
 		}
 
@@ -701,15 +927,23 @@ class MyProject : public BaseProject {
 			level.boatSpeed.z = 35.f;
 			level.posCameraY = 10.f;
 			resetLevel(currentImage);
-			levelLabel = l1;
+			levelLabel = l0;
 			firstTime = true;
 		}
 	}
 
 	void resetLevel(uint32_t currentImage) {		
 
+		hideL0(currentImage);
 		hideL1(currentImage);
 		hideL2(currentImage);
+		hideL3(currentImage);
+		hideL4(currentImage);
+		hideL5(currentImage);
+		hideL6(currentImage);
+		hideL7(currentImage);
+		hideL8(currentImage);
+		hideL9(currentImage);
 		updateBoat(currentImage);
 		hideWelcomePage(currentImage);
 		hideLostPage(currentImage);
@@ -768,17 +1002,83 @@ class MyProject : public BaseProject {
 
 	void updateLevel(uint32_t currentImage) {
 
+		hideL0(currentImage);
 		hideL1(currentImage);
 		hideL2(currentImage);
+		hideL3(currentImage);
+		hideL4(currentImage);
+		hideL5(currentImage);
+		hideL6(currentImage);
+		hideL7(currentImage);
+		hideL8(currentImage);
+		hideL9(currentImage);
 
 		switch (levelLabel) {
+		case l0:
+			updateL0(currentImage);
+			break;
 		case l1:
 			updateL1(currentImage);
 			break;
 		case l2:
 			updateL2(currentImage);
 			break;
+		case l3:
+			updateL3(currentImage);
+			break;
+		case l4:
+			updateL4(currentImage);
+			break;
+		case l5:
+			updateL5(currentImage);
+			break;
+		case l6:
+			updateL6(currentImage);
+			break;
+		case l7:
+			updateL7(currentImage);
+			break;
+		case l8:
+			updateL8(currentImage);
+			break;
+		case l9:
+			updateL9(currentImage);
+			break;
 		}
+
+	}
+
+	void updateInfo(uint32_t currentImage) {
+
+		UniformBufferObject ubo{};
+		void* data;
+
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(boatObject.currentPos.x +0.8f, 8.3f, +7.f))
+			* glm::rotate(glm::mat4(1.f), glm::radians(90.f), glm::vec3(1.f, 0.f, 0.f))
+			* glm::rotate(glm::mat4(1.f), glm::radians(180.f), glm::vec3(0.f, 0.f, 1.f))
+			* glm::rotate(glm::mat4(1.f), glm::radians(51.3f), glm::vec3(0.f, 1.f, 0.f))
+			* glm::scale(glm::mat4(1.f), glm::vec3(1.f, 3.534f, 1.f));
+
+		vkMapMemory(device, infoDS.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
+		memcpy(data, &ubo, sizeof(ubo));
+		vkUnmapMemory(device, infoDS.uniformBuffersMemory[0][currentImage]);
+
+	}
+
+	void updateL0(uint32_t currentImage) {
+
+		UniformBufferObject ubo{};
+		void* data;
+
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(boatObject.currentPos.x +0.8f, 8.3f, -7.9f))
+			* glm::rotate(glm::mat4(1.f), glm::radians(90.f), glm::vec3(1.f, 0.f, 0.f))
+			* glm::rotate(glm::mat4(1.f), glm::radians(180.f), glm::vec3(0.f, 0.f, 1.f))
+			* glm::rotate(glm::mat4(1.f), glm::radians(51.3f), glm::vec3(0.f, 1.f, 0.f))
+			* glm::scale(glm::mat4(1.f), glm::vec3(1.f, 2.674f, 1.f));
+
+		vkMapMemory(device, l0DS.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
+		memcpy(data, &ubo, sizeof(ubo));
+		vkUnmapMemory(device, l0DS.uniformBuffersMemory[0][currentImage]);
 
 	}
 
@@ -787,7 +1087,7 @@ class MyProject : public BaseProject {
 		UniformBufferObject ubo{};
 		void* data;
 
-		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(boatObject.currentPos.x +0.8f, 8.3f, -7.97f))
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(boatObject.currentPos.x +0.8f, 8.3f, -7.9f))
 			* glm::rotate(glm::mat4(1.f), glm::radians(90.f), glm::vec3(1.f, 0.f, 0.f))
 			* glm::rotate(glm::mat4(1.f), glm::radians(180.f), glm::vec3(0.f, 0.f, 1.f))
 			* glm::rotate(glm::mat4(1.f), glm::radians(51.3f), glm::vec3(0.f, 1.f, 0.f))
@@ -804,7 +1104,7 @@ class MyProject : public BaseProject {
 		UniformBufferObject ubo{};
 		void* data;
 
-		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(boatObject.currentPos.x +0.8f, 8.3f, -7.97f))
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(boatObject.currentPos.x +0.8f, 8.3f, -7.9f))
 			* glm::rotate(glm::mat4(1.f), glm::radians(90.f), glm::vec3(1.f, 0.f, 0.f))
 			* glm::rotate(glm::mat4(1.f), glm::radians(180.f), glm::vec3(0.f, 0.f, 1.f))
 			* glm::rotate(glm::mat4(1.f), glm::radians(51.3f), glm::vec3(0.f, 1.f, 0.f))
@@ -813,6 +1113,125 @@ class MyProject : public BaseProject {
 		vkMapMemory(device, l2DS.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
 		memcpy(data, &ubo, sizeof(ubo));
 		vkUnmapMemory(device, l2DS.uniformBuffersMemory[0][currentImage]);
+
+	}
+
+	void updateL3(uint32_t currentImage) {
+
+		UniformBufferObject ubo{};
+		void* data;
+
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(boatObject.currentPos.x +0.8f, 8.3f, -7.9f))
+			* glm::rotate(glm::mat4(1.f), glm::radians(90.f), glm::vec3(1.f, 0.f, 0.f))
+			* glm::rotate(glm::mat4(1.f), glm::radians(180.f), glm::vec3(0.f, 0.f, 1.f))
+			* glm::rotate(glm::mat4(1.f), glm::radians(51.3f), glm::vec3(0.f, 1.f, 0.f))
+			* glm::scale(glm::mat4(1.f), glm::vec3(1.f, 2.674f, 1.f));
+
+		vkMapMemory(device, l3DS.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
+		memcpy(data, &ubo, sizeof(ubo));
+		vkUnmapMemory(device, l3DS.uniformBuffersMemory[0][currentImage]);
+
+	}
+
+	void updateL4(uint32_t currentImage) {
+
+		UniformBufferObject ubo{};
+		void* data;
+
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(boatObject.currentPos.x +0.8f, 8.3f, -7.9f))
+			* glm::rotate(glm::mat4(1.f), glm::radians(90.f), glm::vec3(1.f, 0.f, 0.f))
+			* glm::rotate(glm::mat4(1.f), glm::radians(180.f), glm::vec3(0.f, 0.f, 1.f))
+			* glm::rotate(glm::mat4(1.f), glm::radians(51.3f), glm::vec3(0.f, 1.f, 0.f))
+			* glm::scale(glm::mat4(1.f), glm::vec3(1.f, 2.674f, 1.f));
+
+		vkMapMemory(device, l4DS.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
+		memcpy(data, &ubo, sizeof(ubo));
+		vkUnmapMemory(device, l4DS.uniformBuffersMemory[0][currentImage]);
+
+	}
+
+	void updateL5(uint32_t currentImage) {
+
+		UniformBufferObject ubo{};
+		void* data;
+
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(boatObject.currentPos.x +0.8f, 8.3f, -7.9f))
+			* glm::rotate(glm::mat4(1.f), glm::radians(90.f), glm::vec3(1.f, 0.f, 0.f))
+			* glm::rotate(glm::mat4(1.f), glm::radians(180.f), glm::vec3(0.f, 0.f, 1.f))
+			* glm::rotate(glm::mat4(1.f), glm::radians(51.3f), glm::vec3(0.f, 1.f, 0.f))
+			* glm::scale(glm::mat4(1.f), glm::vec3(1.f, 2.674f, 1.f));
+
+		vkMapMemory(device, l5DS.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
+		memcpy(data, &ubo, sizeof(ubo));
+		vkUnmapMemory(device, l5DS.uniformBuffersMemory[0][currentImage]);
+
+	}
+
+	void updateL6(uint32_t currentImage) {
+
+		UniformBufferObject ubo{};
+		void* data;
+
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(boatObject.currentPos.x +0.8f, 8.3f, -7.9f))
+			* glm::rotate(glm::mat4(1.f), glm::radians(90.f), glm::vec3(1.f, 0.f, 0.f))
+			* glm::rotate(glm::mat4(1.f), glm::radians(180.f), glm::vec3(0.f, 0.f, 1.f))
+			* glm::rotate(glm::mat4(1.f), glm::radians(51.3f), glm::vec3(0.f, 1.f, 0.f))
+			* glm::scale(glm::mat4(1.f), glm::vec3(1.f, 2.674f, 1.f));
+
+		vkMapMemory(device, l6DS.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
+		memcpy(data, &ubo, sizeof(ubo));
+		vkUnmapMemory(device, l6DS.uniformBuffersMemory[0][currentImage]);
+
+	}
+
+	void updateL7(uint32_t currentImage) {
+
+		UniformBufferObject ubo{};
+		void* data;
+
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(boatObject.currentPos.x +0.8f, 8.3f, -7.9f))
+			* glm::rotate(glm::mat4(1.f), glm::radians(90.f), glm::vec3(1.f, 0.f, 0.f))
+			* glm::rotate(glm::mat4(1.f), glm::radians(180.f), glm::vec3(0.f, 0.f, 1.f))
+			* glm::rotate(glm::mat4(1.f), glm::radians(51.3f), glm::vec3(0.f, 1.f, 0.f))
+			* glm::scale(glm::mat4(1.f), glm::vec3(1.f, 2.674f, 1.f));
+
+		vkMapMemory(device, l7DS.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
+		memcpy(data, &ubo, sizeof(ubo));
+		vkUnmapMemory(device, l7DS.uniformBuffersMemory[0][currentImage]);
+
+	}
+
+	void updateL8(uint32_t currentImage) {
+
+		UniformBufferObject ubo{};
+		void* data;
+
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(boatObject.currentPos.x +0.8f, 8.3f, -7.9f))
+			* glm::rotate(glm::mat4(1.f), glm::radians(90.f), glm::vec3(1.f, 0.f, 0.f))
+			* glm::rotate(glm::mat4(1.f), glm::radians(180.f), glm::vec3(0.f, 0.f, 1.f))
+			* glm::rotate(glm::mat4(1.f), glm::radians(51.3f), glm::vec3(0.f, 1.f, 0.f))
+			* glm::scale(glm::mat4(1.f), glm::vec3(1.f, 2.674f, 1.f));
+
+		vkMapMemory(device, l8DS.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
+		memcpy(data, &ubo, sizeof(ubo));
+		vkUnmapMemory(device, l8DS.uniformBuffersMemory[0][currentImage]);
+
+	}
+
+	void updateL9(uint32_t currentImage) {
+
+		UniformBufferObject ubo{};
+		void* data;
+
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(boatObject.currentPos.x +0.8f, 8.3f, -7.9f))
+			* glm::rotate(glm::mat4(1.f), glm::radians(90.f), glm::vec3(1.f, 0.f, 0.f))
+			* glm::rotate(glm::mat4(1.f), glm::radians(180.f), glm::vec3(0.f, 0.f, 1.f))
+			* glm::rotate(glm::mat4(1.f), glm::radians(51.3f), glm::vec3(0.f, 1.f, 0.f))
+			* glm::scale(glm::mat4(1.f), glm::vec3(1.f, 2.674f, 1.f));
+
+		vkMapMemory(device, l9DS.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
+		memcpy(data, &ubo, sizeof(ubo));
+		vkUnmapMemory(device, l9DS.uniformBuffersMemory[0][currentImage]);
 
 	}
 
@@ -842,6 +1261,32 @@ class MyProject : public BaseProject {
 
 	}
 
+	void hideInfo(uint32_t currentImage) {
+
+		UniformBufferObject ubo{};
+		void* data;
+
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0.f, 1000.f, 0.f));
+
+		vkMapMemory(device, infoDS.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
+		memcpy(data, &ubo, sizeof(ubo));
+		vkUnmapMemory(device, infoDS.uniformBuffersMemory[0][currentImage]);
+
+	}
+
+	void hideL0(uint32_t currentImage) {
+
+		UniformBufferObject ubo{};
+		void* data;
+
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0.f, 1000.f, 0.f));
+
+		vkMapMemory(device, l0DS.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
+		memcpy(data, &ubo, sizeof(ubo));
+		vkUnmapMemory(device, l0DS.uniformBuffersMemory[0][currentImage]);
+
+	}
+
 	void hideL1(uint32_t currentImage) {
 
 		UniformBufferObject ubo{};
@@ -865,6 +1310,97 @@ class MyProject : public BaseProject {
 		vkMapMemory(device, l2DS.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
 		memcpy(data, &ubo, sizeof(ubo));
 		vkUnmapMemory(device, l2DS.uniformBuffersMemory[0][currentImage]);
+
+	}
+
+	void hideL3(uint32_t currentImage) {
+
+		UniformBufferObject ubo{};
+		void* data;
+
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0.f, 1000.f, 0.f));
+
+		vkMapMemory(device, l3DS.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
+		memcpy(data, &ubo, sizeof(ubo));
+		vkUnmapMemory(device, l3DS.uniformBuffersMemory[0][currentImage]);
+
+	}
+
+	void hideL4(uint32_t currentImage) {
+
+		UniformBufferObject ubo{};
+		void* data;
+
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0.f, 1000.f, 0.f));
+
+		vkMapMemory(device, l4DS.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
+		memcpy(data, &ubo, sizeof(ubo));
+		vkUnmapMemory(device, l4DS.uniformBuffersMemory[0][currentImage]);
+
+	}
+
+	void hideL5(uint32_t currentImage) {
+
+		UniformBufferObject ubo{};
+		void* data;
+
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0.f, 1000.f, 0.f));
+
+		vkMapMemory(device, l5DS.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
+		memcpy(data, &ubo, sizeof(ubo));
+		vkUnmapMemory(device, l5DS.uniformBuffersMemory[0][currentImage]);
+
+	}
+
+	void hideL6(uint32_t currentImage) {
+
+		UniformBufferObject ubo{};
+		void* data;
+
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0.f, 1000.f, 0.f));
+
+		vkMapMemory(device, l6DS.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
+		memcpy(data, &ubo, sizeof(ubo));
+		vkUnmapMemory(device, l6DS.uniformBuffersMemory[0][currentImage]);
+
+	}
+
+	void hideL7(uint32_t currentImage) {
+
+		UniformBufferObject ubo{};
+		void* data;
+
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0.f, 1000.f, 0.f));
+
+		vkMapMemory(device, l7DS.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
+		memcpy(data, &ubo, sizeof(ubo));
+		vkUnmapMemory(device, l7DS.uniformBuffersMemory[0][currentImage]);
+
+	}
+
+	void hideL8(uint32_t currentImage) {
+
+		UniformBufferObject ubo{};
+		void* data;
+
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0.f, 1000.f, 0.f));
+
+		vkMapMemory(device, l8DS.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
+		memcpy(data, &ubo, sizeof(ubo));
+		vkUnmapMemory(device, l8DS.uniformBuffersMemory[0][currentImage]);
+
+	}
+
+	void hideL9(uint32_t currentImage) {
+
+		UniformBufferObject ubo{};
+		void* data;
+
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0.f, 1000.f, 0.f));
+
+		vkMapMemory(device, l9DS.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
+		memcpy(data, &ubo, sizeof(ubo));
+		vkUnmapMemory(device, l9DS.uniformBuffersMemory[0][currentImage]);
 
 	}
 
