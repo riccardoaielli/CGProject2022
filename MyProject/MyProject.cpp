@@ -28,7 +28,7 @@ struct BoatObject {
 	Model model;
 	Texture texture;
 	DescriptorSet ds;
-	glm::vec3 currentPos = glm::vec3(0.f);
+	glm::vec3 currentPos = glm::vec3(0.f, 0.f, 0.f);
 };
 
 struct LandscapeObject {
@@ -110,8 +110,8 @@ class MyProject : public BaseProject {
 	// Here you set the main application parameters
 	void setWindowParameters() {
 		// window size, titile and initial background
-		windowWidth = 2000;
-		windowHeight = 1000;
+		windowWidth = 1224;
+		windowHeight = 792;
 		windowTitle = "My Project";
 		initialBackgroundColor = {0.f, 0.f, 0.f, 1.f};
 		
@@ -508,12 +508,6 @@ class MyProject : public BaseProject {
 	// Very likely this will be where you will be writing the logic of your application.
 	void updateUniformBuffer(uint32_t currentImage) {
 		
-		/* UPDATE THE GLOBAL UBO */
-
-		updateGlobalUBO(currentImage);
-
-		/*---------------------------------------------------------------------*/
-
 		switch (state) {
 		case PLAYING:
 
@@ -576,6 +570,12 @@ class MyProject : public BaseProject {
 			state = PLAYING;
 		break;
 		}
+
+		/* UPDATE THE GLOBAL UBO */
+
+		updateGlobalUBO(currentImage);
+
+		/*---------------------------------------------------------------------*/
 
 		
 	}	
@@ -979,7 +979,7 @@ class MyProject : public BaseProject {
 
 				obj.currentPos = glm::vec3(i, 0.f, (std::rand() % 5 - 2) * level.distanceBetweenRocksZ);
 				even++;
-				std::cout << "CIAO " << i << " " << level.numberRocksLine << "\n";
+				//std::cout << "CIAO " << i << " " << level.numberRocksLine << "\n";
 				if (even >= level.numberRocksLine) {
 					i += level.distanceBetweenRocksX;
 					even = 0;
@@ -1027,7 +1027,6 @@ class MyProject : public BaseProject {
 		float delta = time - last;
 		last = time;
 
-		static glm::mat4 mat = glm::mat4(1.0f);
 		static float angle = glm::radians(0.f);
 
 		void* data;
@@ -1070,7 +1069,7 @@ class MyProject : public BaseProject {
 
 			//boatObject.currentPos = pos;
 
-			std::cout << boatObject.currentPos.x << "  " << boatObject.currentPos.z << "\n";
+			//std::cout << boatObject.currentPos.x << "  " << boatObject.currentPos.z << "\n";
 
 			vkMapMemory(device, boatObject.ds.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
 			memcpy(data, &ubo, sizeof(ubo));
