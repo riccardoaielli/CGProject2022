@@ -808,7 +808,7 @@ class MyProject : public BaseProject {
 		if (glfwGetKey(window, GLFW_KEY_1)) {
 			level.numberRocksLine = 1;
 			level.distanceBetweenRocksX = 14.f;
-			level.distanceFinishLine = 100.f;
+			level.distanceFinishLine = 50.f;
 			level.boatSpeed.x = 5.f;
 			level.boatSpeed.z = 5.f;
 			level.posCameraY = 10.f;
@@ -819,8 +819,8 @@ class MyProject : public BaseProject {
 		else if (glfwGetKey(window, GLFW_KEY_2)) {
 			level.numberRocksLine = 2;
 			level.distanceBetweenRocksX = 14.f;
-			level.distanceFinishLine = 240.f;
-			level.boatSpeed.x = 8.f;
+			level.distanceFinishLine = 200.f;
+			level.boatSpeed.x = 10.f;
 			level.boatSpeed.z = 8.f;
 			level.posCameraY = 10.f;
 			firstTime = true;
@@ -832,9 +832,9 @@ class MyProject : public BaseProject {
 		else if (glfwGetKey(window, GLFW_KEY_3)) {
 			level.numberRocksLine = 3;
 			level.distanceBetweenRocksX = 14.f;
-			level.distanceFinishLine = 600.f;
-			level.boatSpeed.x = 10.f;
-			level.boatSpeed.z = 10.f;
+			level.distanceFinishLine = 360.f;
+			level.boatSpeed.x = 12.f;
+			level.boatSpeed.z = 11.f;
 			level.posCameraY = 10.f;
 			firstTime = true;
 			resetLevel(currentImage);
@@ -845,9 +845,9 @@ class MyProject : public BaseProject {
 		else if (glfwGetKey(window, GLFW_KEY_4)) {
 			level.numberRocksLine = 3;
 			level.distanceBetweenRocksX = 14.f;
-			level.distanceFinishLine = 660.f;
-			level.boatSpeed.x = 11.f;
-			level.boatSpeed.z = 10.f;
+			level.distanceFinishLine = 780.f;
+			level.boatSpeed.x = 13.f;
+			level.boatSpeed.z = 12.f;
 			level.posCameraY = 10.f;
 			firstTime = true;
 			resetLevel(currentImage);
@@ -858,9 +858,9 @@ class MyProject : public BaseProject {
 		else if (glfwGetKey(window, GLFW_KEY_5)) {
 			level.numberRocksLine = 4;
 			level.distanceBetweenRocksX = 15.f;
-			level.distanceFinishLine = 600.f;
-			level.boatSpeed.x = 10.f;
-			level.boatSpeed.z = 11.f;
+			level.distanceFinishLine = 840.f;
+			level.boatSpeed.x = 14.f;
+			level.boatSpeed.z = 15.f;
 			level.posCameraY = 10.f;
 			resetLevel(currentImage);
 			levelLabel = l5;
@@ -871,9 +871,9 @@ class MyProject : public BaseProject {
 		else if (glfwGetKey(window, GLFW_KEY_6)) {
 			level.numberRocksLine = 4;
 			level.distanceBetweenRocksX = 16.f;
-			level.distanceFinishLine = 660.f;
-			level.boatSpeed.x = 11.f;
-			level.boatSpeed.z = 12.f;
+			level.distanceFinishLine = 960.f;
+			level.boatSpeed.x = 16.f;
+			level.boatSpeed.z = 18.f;
 			level.posCameraY = 10.f;
 			resetLevel(currentImage);
 			levelLabel = l6;
@@ -884,9 +884,9 @@ class MyProject : public BaseProject {
 		else if (glfwGetKey(window, GLFW_KEY_7)) {
 			level.numberRocksLine = 4;
 			level.distanceBetweenRocksX = 16.f;
-			level.distanceFinishLine = 720.f;
-			level.boatSpeed.x = 12.f;
-			level.boatSpeed.z = 13.f;
+			level.distanceFinishLine = 1080.f;
+			level.boatSpeed.x = 18.f;
+			level.boatSpeed.z = 20.f;
 			level.posCameraY = 10.f;
 			resetLevel(currentImage);
 			levelLabel = l7;
@@ -897,9 +897,9 @@ class MyProject : public BaseProject {
 		else if (glfwGetKey(window, GLFW_KEY_8)) {
 			level.numberRocksLine = 4;
 			level.distanceBetweenRocksX = 18.f;
-			level.distanceFinishLine = 900.f;
-			level.boatSpeed.x = 15.f;
-			level.boatSpeed.z = 16.f;
+			level.distanceFinishLine = 1200.f;
+			level.boatSpeed.x = 20.f;
+			level.boatSpeed.z = 22.f;
 			level.posCameraY = 10.f;
 			resetLevel(currentImage);
 			levelLabel = l8;
@@ -910,9 +910,9 @@ class MyProject : public BaseProject {
 		else if (glfwGetKey(window, GLFW_KEY_9)) {
 			level.numberRocksLine = 4;
 			level.distanceBetweenRocksX = 18.f;
-			level.distanceFinishLine = 1020.f;
-			level.boatSpeed.x = 17.f;
-			level.boatSpeed.z = 19.f;
+			level.distanceFinishLine = 1440.f;
+			level.boatSpeed.x = 24.f;
+			level.boatSpeed.z = 26.f;
 			level.posCameraY = 10.f;
 			resetLevel(currentImage);
 			levelLabel = l9;
@@ -922,9 +922,9 @@ class MyProject : public BaseProject {
 		else if (glfwGetKey(window, GLFW_KEY_0)) {
 			level.numberRocksLine = 4;
 			level.distanceBetweenRocksX = 18.f;
-			level.distanceFinishLine = 2400.f;
+			level.distanceFinishLine = 2880.f;
 			level.boatSpeed.x = 32.f;
-			level.boatSpeed.z = 35.f;
+			level.boatSpeed.z = 34.f;
 			level.posCameraY = 10.f;
 			resetLevel(currentImage);
 			levelLabel = l0;
@@ -971,11 +971,11 @@ class MyProject : public BaseProject {
 		UniformBufferObject ubo{};
 		void* data;
 
-		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(boatObject.currentPos.x -6.f, 1.5f, 0.f))
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(boatObject.currentPos.x -7.25f, 6.f, 0.f))
 			* glm::rotate(glm::mat4(1.f), glm::radians(90.f), glm::vec3(1.f, 0.f, 0.f))
 			* glm::rotate(glm::mat4(1.f), glm::radians(180.f), glm::vec3(0.f, 0.f, 1.f))
 			* glm::rotate(glm::mat4(1.f), glm::radians(51.3f), glm::vec3(0.f, 1.f, 0.f))
-			* glm::scale(glm::mat4(1.f), glm::vec3(1.f, 7.25f, 2.25f));
+			* glm::scale(glm::mat4(1.f), glm::vec3(1.f, 3.22f, 1.f));
 
 		vkMapMemory(device, lostPageDS.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
 		memcpy(data, &ubo, sizeof(ubo));
@@ -988,11 +988,11 @@ class MyProject : public BaseProject {
 		UniformBufferObject ubo{};
 		void* data;
 
-		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(boatObject.currentPos.x -6.f, 1.5f, 0.f))
+		ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(boatObject.currentPos.x -7.25f, 6.f, 0.f))
 			* glm::rotate(glm::mat4(1.f), glm::radians(90.f), glm::vec3(1.f, 0.f, 0.f))
 			* glm::rotate(glm::mat4(1.f), glm::radians(180.f), glm::vec3(0.f, 0.f, 1.f))
 			* glm::rotate(glm::mat4(1.f), glm::radians(51.3f), glm::vec3(0.f, 1.f, 0.f))
-			* glm::scale(glm::mat4(1.f), glm::vec3(1.f, 7.25f, 2.25f));
+			* glm::scale(glm::mat4(1.f), glm::vec3(1.f, 3.22f, 1.f));
 
 		vkMapMemory(device, wonPageDS.uniformBuffersMemory[0][currentImage], 0, sizeof(ubo), 0, &data);
 		memcpy(data, &ubo, sizeof(ubo));
