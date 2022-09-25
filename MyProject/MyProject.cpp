@@ -1527,7 +1527,7 @@ class MyProject : public BaseProject {
 		
 
 		for (auto& obj : rockObjects) {
-			if (boatObject.currentPos.z +1.f < obj.currentPos.z + 2.8f && boatObject.currentPos.z - 1.f > obj.currentPos.z - 2.8f && 
+			if (boatObject.currentPos.z +1.f < obj.currentPos.z + 3.f && boatObject.currentPos.z - 1.f > obj.currentPos.z - 3.f && 
 					(boatObject.currentPos.x + 2.f > obj.currentPos.x - 1.f && boatObject.currentPos.x - 2.4f < obj.currentPos.x + 1.f) ) {
 				state = LOST;
 			}
