@@ -6,13 +6,13 @@ This is the project of *Computer Graphics* course (Politecnico di Milano, A.Y. 2
 It consists in designing a game in which a boat keeps going forward (third-person view) and obstacles (rocks) appear in its path. The player must avoid the obstacles by using the keyboard to move the boat.
 
 ## Start Level 5
-![](https://github.com/riccardoaielli/Readme/blob/main/CGProject2022/Start.gif)
+![](https://github.com/riccardoaielli/CGProject2022/blob/master/textures/Start.gif)
 
 ## Level 9
-![](https://github.com/riccardoaielli/Readme/blob/main/CGProject2022/L9.gif)
+![](https://github.com/riccardoaielli/CGProject2022/blob/master/textures/L9.gif)
 
 ## Win Level 1
-![](https://github.com/riccardoaielli/Readme/blob/main/CGProject2022/Win.gif)
+![](https://github.com/riccardoaielli/CGProject2022/blob/master/textures/Win.gif)
 
 ## Group members
 - [__Riccardo Aielli__](https://github.com/riccardoaielli)
